@@ -14,10 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+#
+#   IMPORTANT - THIS CODE SHOULD NOT BE USED TO EVALUATE MY WORK
+#
+#   This code is from following allong the examples used in the
+#   udacity full stack developer nano degree Intro to Backend course
+#   I will likely add to it with my own ideas and exploration but it
+#   will be 90+% follow along code.
+#
+
 import webapp2
 
 form = """
-<form action="http://www.google.com/search">
+<form action="/testform">
     <input name="q">
     <input type="submit">
 </form>
@@ -27,6 +37,12 @@ class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.response.write(form)
 
+class TestHandler(webapp2.RequestHandler):
+    def get(self):
+        q = self.request.get("q")
+        self.response.out.write(q)
+
 app = webapp2.WSGIApplication([
-    ('/', MainHandler)
+    ('/', MainHandler),
+    ('/testform', TestHandler)
 ], debug=True)
