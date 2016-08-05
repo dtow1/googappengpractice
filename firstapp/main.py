@@ -27,8 +27,21 @@
 import webapp2
 
 form = """
-<form method="post" action="/testform">
-    <input name="q">
+<form method="post">
+    What is your birthday?
+    <br>
+    <label> Month
+        <input type="text" name="month">
+    </label>
+    <label> Day
+        <input type="text" name="day">
+    </label>
+    <label> Year
+        <input type="text" name="year"
+    </label>
+
+    <br>
+    <br>
     <input type="submit">
 </form>
 """
@@ -39,16 +52,9 @@ class MainHandler(webapp2.RequestHandler):
         # client
         self.response.write(form)
 
-class TestHandler(webapp2.RequestHandler):
     def post(self):
-        # request represents the request that came from the browser can call
-        # get to get different parameters
-        q = self.request.get("q")
-        self.response.out.write(q)
-        #self.response.headers['Content-Type'] = 'text/plain'
-        #self.response.out.write(self.request)
+        self.response.out.write("Thanks! That is a valid day!")
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
-    ('/testform', TestHandler)
 ], debug=True)
