@@ -79,9 +79,10 @@ def valid_year(year):
 class MainHandler(webapp2.RequestHandler):
     def write_form(self, error="", month="", day="", year=""):
         self.response.out.write(form % {"error": error,
-                                        "month": month,
-                                        "day": day,
-                                        "year": year})
+                                        "month": cgi.escape(month),
+                                        "day": cgi.escape(day),
+                                        "year": cgi.escape(year)
+                                        })
 
     def get(self):
         # response represents the response that we will send back to the
@@ -89,9 +90,9 @@ class MainHandler(webapp2.RequestHandler):
         self.write_form()
 
     def post(self):
-        user_month = cgi.escape(self.request.get('month'))
-        user_day = cgi.escape(self.request.get('day'))
-        user_year = cgi.escape(self.request.get('year'))
+        user_month = self.request.get('month')
+        user_day = self.request.get('day')
+        user_year = self.request.get('year')
 
         month = valid_month(user_month)
         day = valid_day(user_day)
