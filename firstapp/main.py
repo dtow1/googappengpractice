@@ -25,6 +25,7 @@
 #
 
 import webapp2
+import cgi
 
 form = """
 <form method="post">
@@ -88,9 +89,9 @@ class MainHandler(webapp2.RequestHandler):
         self.write_form()
 
     def post(self):
-        user_month = self.request.get('month')
-        user_day = self.request.get('day')
-        user_year = self.request.get('year')
+        user_month = cgi.escape(self.request.get('month'))
+        user_day = cgi.escape(self.request.get('day'))
+        user_year = cgi.escape(self.request.get('year'))
 
         month = valid_month(user_month)
         day = valid_day(user_day)
