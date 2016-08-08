@@ -40,6 +40,8 @@ form = """
         <input type="text" name="year"
     </label>
 
+    <div style="color: red">%(error)s</div>
+
     <br>
     <br>
     <input type="submit">
@@ -74,10 +76,13 @@ def valid_year(year):
     return  int(year) if (year.isdigit() and int(year) in range(1900,2021)) else None
 
 class MainHandler(webapp2.RequestHandler):
+    def write_form(self, error=""):
+        self.response.out.write(form % {"error": error})
+
     def get(self):
         # response represents the response that we will send back to the
         # client
-        self.response.write(form)
+        self.write_form()
 
     def post(self):
         user_month = valid_month(self.request.get('month'));
@@ -85,9 +90,9 @@ class MainHandler(webapp2.RequestHandler):
         user_year = valid_year(self.request.get('year'));
 
         if not (user_month and user_day and user_year):
-            self.response.out.write(form)
+            self.write_form("Wrong!")
         else:
-           self.response.out.write("Thanks! That is a valid day!")
+            self.response.out.write("Thanks! That is a valid day!")
 
 
 
