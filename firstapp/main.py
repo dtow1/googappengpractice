@@ -46,6 +46,33 @@ form = """
 </form>
 """
 
+def valid_month(month):
+    months = ['January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December']
+    if month.capitalize() in months:
+        return month.capitalize()
+    else:
+        return None
+
+# This function I wrote. I tend to be more pedantic in my code but wanted
+# to see if I could do it in one line.
+
+def valid_day(day):
+    return  int(day) if (day.isdigit() and int(day) in range(1,32)) else None
+
+def valid_year(year):
+    return  int(year) if (year.isdigit() and int(year) in range(1900,2021)) else None
+
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         # response represents the response that we will send back to the
@@ -53,7 +80,17 @@ class MainHandler(webapp2.RequestHandler):
         self.response.write(form)
 
     def post(self):
-        self.response.out.write("Thanks! That is a valid day!")
+        user_month = valid_month(self.request.get('month'));
+        user_day = valid_day(self.request.get('day'));
+        user_year = valid_year(self.request.get('year'));
+
+        if not (user_month and user_day and user_year):
+            self.response.out.write(form)
+        else:
+           self.response.out.write("Thanks! That is a valid day!")
+
+
+
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
