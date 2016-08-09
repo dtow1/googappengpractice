@@ -69,6 +69,16 @@ class MainPage(Handler):
         output = form_html
         output_hidden = ""
 
+class FizzBuzzHandler(Handler):
+    def get(self):
+        n=self.request.get("n")
+        if n and n.isdigit():
+            n = int(n)
+        self.render("fizzbuzz.html", n=n)
+
+        output = form_html
+        output_hidden = ""
+
         # items = self.request.get_all("food")
         # if items:
         #     output_items = ""
@@ -85,5 +95,6 @@ class MainPage(Handler):
 
 
 app = webapp2.WSGIApplication([
-    ('/', MainPage)
+    ('/', MainPage),
+    ('/fizzbuzz', FizzBuzzHandler)
 ], debug=True)
