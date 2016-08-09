@@ -1,5 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+
 <form>
-    <h2>Fizz Buzxz!</h2>
+    <h2>Fizz Buzz!</h2>
     <input type="text" name="food">
     <button>Add</button>
     <ol>
@@ -17,3 +21,5 @@
         {% endfor %}
     </ol>
 </form>
+
+{% endblock %}

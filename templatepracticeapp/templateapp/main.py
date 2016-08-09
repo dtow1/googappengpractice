@@ -20,7 +20,7 @@ import jinja2
 
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir))
+jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape=True)
 
 
 form_html = """
@@ -60,14 +60,9 @@ class Handler(webapp2.RequestHandler):
 
 class MainPage(Handler):
     def get(self):
-        n = self.request.get("n")
-        if n and n.isdigit():
-            n = int(n)
-        self.render("shopping_list.html", n=n)
+        items = self.request.get_all("food")
+        self.render("shopping_list.html", items = items)
 
-
-        output = form_html
-        output_hidden = ""
 
 class FizzBuzzHandler(Handler):
     def get(self):
@@ -75,9 +70,6 @@ class FizzBuzzHandler(Handler):
         if n and n.isdigit():
             n = int(n)
         self.render("fizzbuzz.html", n=n)
-
-        output = form_html
-        output_hidden = ""
 
         # items = self.request.get_all("food")
         # if items:
