@@ -37,6 +37,10 @@ class MainHandler(Handler):
     def get(self):
         self.render("signup.html")
 
+    def put(self):
+        self.request.get("text")
+
+
 
 
 app = webapp2.WSGIApplication([

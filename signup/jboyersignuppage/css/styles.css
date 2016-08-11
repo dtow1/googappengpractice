@@ -1,4 +1,13 @@
 html,
 body {
-    background-color: red;
+    width: 100%;
+    height: 100%;
+    background-color: #3c3c3c;
+}
+
+#container {
+    width: 205px;
+    margin: 40% auto;
+    background-color: #626e60;
+    padding: 0 5px 5px 5px;
 }
