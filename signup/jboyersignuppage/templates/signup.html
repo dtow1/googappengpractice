@@ -1,23 +1,30 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <form type="put">
+    <h1>Sign Up Now!</h1>
+    <form method="post">
         <table>
             <tr>
-                <td><label for="name">Name</label></td>
-                <td><input type="text" id="name" name="name" value="Enter name"></td>
+                <td><label for="username">Name</label></td>
+                <td><input type="text" id="username" name="username" placeholder="Enter Name"></td>
             </tr>
             <tr>
                 <td><label for="password">Password</label></td>
-                <td><input type="password" id="password" name="password"></td>
+                <td><input type="password" id="password" name="password" placeholder="Enter Password"></td>
             </tr>
             <tr>
-                <td><label for="confirm">Confirm</label></td>
-                <td><input type="password" id="confirm" name="confirm"></td>
+                <td><label for="verify">Confirm</label></td>
+                <td><input type="password" id="verify" name="verify" placeholder="Confirm Password"></td>
             </tr>
             <tr>
                 <td><label for="email">Email</label></td>
-                <td><input type="email" id="email" name="email" value="Enter email"></td>
+                <td><input type="email" id="email" name="email" placeholder="Enter Email"></td>
+            </tr>
+            <tr>
+                <td><button type = "submit">Submit</button></td>
+            </tr>
+            <tr>
+                <td>{{response}}</td>
             </tr>
         </table>
     </form>

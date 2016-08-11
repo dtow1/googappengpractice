@@ -17,7 +17,7 @@
 import webapp2
 import os
 import jinja2
-
+import re
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape=True)
@@ -35,14 +35,70 @@ class Handler(webapp2.RequestHandler):
 
 class MainHandler(Handler):
     def get(self):
-        self.render("signup.html")
+        self.render("signup.html", response = "")
 
-    def put(self):
-        self.request.get("text")
+    def post(self):
+        response = ""
+        redirect = False;
+
+        username = self.request.get('username')
+        if self.check_name(username) is None:
+           response += "Please enter a valid username. "
+           redirect = False;
+
+        password = self.request.get('password')
+        if self.check_password(password) is None:
+            response += "Please enter a valid password. "
+            redirect = False;
+
+        verify = self.request.get('verify')
+        if self.check_password(verify) is None:
+            response += "Please verify your password. "
+            redirect = False;
+
+        if self.check_match(password, verify) is None:
+            response += "Passwords do not match. "
+            redirect = False;
+
+        email = self.request.get('email')
+        if self.check_email(email) is None:
+            response += "Please enter a valid email. "
+            redirect = False;
+
+        if response == "":
+            # self.render("welcome.html", username="wtf mate")
+            self.redirect('/welcome?username='+username)
+        else:
+            self.render("signup.html", response = response)
 
 
+    def check_name(self, name):
+        USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+        return USER_RE.match(name)
 
+    def check_password(self, password):
+        PWD_RE = re.compile(r"^.{3,20}$")
+        return PWD_RE.match(password)
+
+    def check_match(self, password, confirm):
+        return password == confirm
+
+    def check_email(self, email):
+        EMAIL_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
+        return email == "" or EMAIL_RE.match(email)
+
+class WelcomeHandler(Handler):
+    def get(self):
+        username = self.request.get('username')
+        self.render("welcome.html", username = username)
+
+        # username = self.request.get('username')
+        # if username:
+        #     self.render("welcome.html", username="potato")
+        # else:
+        #     self.redirect("/", MainHandler)
 
 app = webapp2.WSGIApplication([
-    ('/', MainHandler)
+    ('/', MainHandler),
+    ('/welcome', WelcomeHandler)
 ], debug=True)
