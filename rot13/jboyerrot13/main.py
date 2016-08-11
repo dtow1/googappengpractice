@@ -17,7 +17,7 @@
 import webapp2
 import os
 import jinja2
-
+import codecs
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape=True)
@@ -36,6 +36,13 @@ class Handler(webapp2.RequestHandler):
 class MainPage(Handler):
     def get(self):
         self.render("rotinput.html")
+
+    def post(self):
+        text = self.request.get('text')
+        if text:
+            coded = codecs.encode(text,'rot13')
+        self.render("rotinput.html", coded=coded)
+
 
 app = webapp2.WSGIApplication([
     ('/', MainPage)

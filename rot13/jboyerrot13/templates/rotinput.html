@@ -2,9 +2,11 @@
 
 {% block content %}
 
-<form>
+<form method="post">
     <h2>Enter Text to encode using ROT13</h2>
-    <textarea name="text" id="text" rows="10" cols="60"></textarea>
+        <textarea name="text" id="text" rows="10" cols="60">
+        {{coded}}
+        </textarea>
     <br>
     <button>Encode</button>
 </form>
