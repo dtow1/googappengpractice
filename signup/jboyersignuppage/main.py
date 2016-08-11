@@ -35,7 +35,7 @@ class Handler(webapp2.RequestHandler):
 
 class MainHandler(Handler):
     def get(self):
-        self.request.get(whateveroges here)
+        self.render("signup.html")
 
 
 
