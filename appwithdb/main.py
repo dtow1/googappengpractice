@@ -18,14 +18,16 @@
 #
 #   IMPORTANT - THIS CODE SHOULD NOT BE USED TO EVALUATE MY WORK
 #
-#   This code is from following allong the examples used in the
+#   This code is from following along the examples used in the
 #   udacity full stack developer nano degree Intro to Backend course
 #   I will likely add to it with my own ideas and exploration but it
 #   will be 90+% follow along code.
 #
 
+from collections import namedtuple
 import webapp2
 import cgi
+import sqlite3
 
 form = """
 <form method="post">
@@ -67,8 +69,14 @@ def valid_month(month):
     else:
         return None
 
+# make and populate a table
+db = sqlite3.connect(':memory:')
+db.execute('create table links ' +
+          '(id integer, submitter_id integer, submitted_time integer, ' +
+          'votes integer, title text, url text)')
+for l in links:
+    db.execute('insert into links values (?, ?, ?, ?, ?, ?)', l)
 
-from collections import namedtuple
 
 # make a basic Link class
 Link = namedtuple('Link', ['id', 'submitter_id', 'submitted_time', 'votes',
@@ -159,7 +167,7 @@ links = [
 # make the function query() return the number of votes for the link whose ID is
 # 15
 
-def query():
+def query1():
     for number in links:
         if number.id == 15:
             return number.votes
@@ -179,6 +187,14 @@ def query2():
     values.sort(key = lambda val : val.submitted_time)
     return values
 
+def query()
+    cursor = db.execute("select * from links")
+    for link_tuple in cursor:
+        link=Link(*link_tuple)
+        print link.votes
+    return results
+
+print query()
 
 
 # This function I wrote. I tend to be more pedantic in my code but wanted
