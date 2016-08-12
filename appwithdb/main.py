@@ -160,10 +160,24 @@ links = [
 # 15
 
 def query():
-    for number links:
+    for number in links:
         if number.id == 15:
             return number.votes
     return None
+
+# links is a list of Link objects. Links have a handful of properties. For
+# example, a Link's number of votes can be accessed by link.votes if "link" is a
+# Link.
+
+# make the function query() return a list of Links submitted by user 62443, by
+# submission time ascending
+def query2():
+    values = []
+    for number in links:
+        if number.submitter_id == 62443:
+            values.append(number)
+    values.sort(key = lambda val : val.submitted_time)
+    return values
 
 
 
