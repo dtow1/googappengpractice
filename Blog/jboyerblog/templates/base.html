@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html>
+    <head>
     {% block head %}
     {% endblock %}
+        <link rel= "stylesheet" type="text/css" href="css/style.css">
+    </head>
     <body>
         <label>
-            <div>title</div>
+            <div>Title</div>
             <input type="text" name="title" value = "{{title}}">
         </label>
         </form>
 
         <label>
-            <div>art</div>
-            <textarea name="art">{{art}}</textarea>
+            <div>Article</div>
+            <textarea name="article-body">{{article}}</textarea>
         </label>
 
         <div class="error">{{error}}</div>
@@ -19,11 +22,11 @@
 
         <hr>
 
-        {% for art in arts %}
-            <div class = "art">
-                <div class="art-title">{{art.title}}
+        {% for article in articles %}
+            <div class = "article">
+                <div class="article-title">{{article.title}}
                 </div>
-                <pre class="art-body">{{art.art}}</pre>
+                <pre class="article-body">{{article.article}}</pre>
             </div>
         {% endfor %}
 

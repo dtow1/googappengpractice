@@ -43,8 +43,26 @@ class Handler(webapp2.RequestHandler):
         self.write(self.render_str(template,**kw))
 
 class MainHandler(Handler):
+    def render_front(self, title="", article="", error=""):
+        articles = db.GqlQuery("SELECT * FROM Entry "
+                            "ORDER BY created DESC")
+        self.render("base.html",title=title, article=article, error=error, articles = articles)
+
     def get(self):
-        self.render('base.html')
+        self.render_front()
+
+    def post(self):
+        title = self.request.get("title")
+        article = self.request.get("article")
+
+        if title and art:
+            a = Entry(title=title, article=article)
+            article.put()
+
+            self.redirect("/")
+        else:
+            error = "You need to include both a title and an article"
+            self.render_front(title,article,error)
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler)
