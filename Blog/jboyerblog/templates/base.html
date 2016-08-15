@@ -6,32 +6,9 @@
         <link rel= "stylesheet" type="text/css" href="css/style.css">
     </head>
     <body>
-        <h1>Jason Boyer's Blog App</h1>
-        <form method="post">
-            <label>
-                <div>Title</div>
-                <input type="text" name="title" value = "{{title}}">
-            </label>
-
-            <label>
-                <div>Article</div>
-                <textarea name="article-body">{{article}}</textarea>
-            </label>
-            <div class="error">{{error}}</div>
-            <button type="submit">Submit</button>
-        </form>
-
-
-        <hr>
-
-        {% for article in articles %}
-            <div class = "article-style">
-                <div class="article-title">{{article.title}}</div>
-                <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>
-
-                <pre class="article-body">{{article.article}}</pre>
-            </div>
-        {% endfor %}
-
+        {% block headingmessage %}
+        {% endblock %}
+        {% block content %}
+        {% endblock %}
     </body>
 </html>
