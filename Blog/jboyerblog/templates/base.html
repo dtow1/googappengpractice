@@ -6,24 +6,25 @@
         <link rel= "stylesheet" type="text/css" href="css/style.css">
     </head>
     <body>
-        <label>
-            <div>Title</div>
-            <input type="text" name="title" value = "{{title}}">
-        </label>
+        <form method="post">
+            <label>
+                <div>Title</div>
+                <input type="text" name="title" value = "{{title}}">
+            </label>
+
+            <label>
+                <div>Article</div>
+                <textarea name="article-body">{{article}}</textarea>
+            </label>
+            <div class="error">{{error}}</div>
+            <button type="submit">Submit</button>
         </form>
 
-        <label>
-            <div>Article</div>
-            <textarea name="article-body">{{article}}</textarea>
-        </label>
-
-        <div class="error">{{error}}</div>
-        <button type="submit">Submit</button>
 
         <hr>
 
         {% for article in articles %}
-            <div class = "article">
+            <div class = "article-style">
                 <div class="article-title">{{article.title}}
                 </div>
                 <pre class="article-body">{{article.article}}</pre>

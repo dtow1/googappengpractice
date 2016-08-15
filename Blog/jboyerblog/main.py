@@ -26,7 +26,7 @@ jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), a
 
 class Entry(db.Model):
     title = db.StringProperty(required = True)
-    post = db.TextProperty(required = True)
+    article = db.TextProperty(required = True)
     created = db.DateTimeProperty(auto_now_add = True)
 
 
@@ -46,18 +46,18 @@ class MainHandler(Handler):
     def render_front(self, title="", article="", error=""):
         articles = db.GqlQuery("SELECT * FROM Entry "
                             "ORDER BY created DESC")
-        self.render("base.html",title=title, article=article, error=error, articles = articles)
+        self.render("newpost.html",title=title, article=article, error=error, articles = articles)
 
     def get(self):
         self.render_front()
 
     def post(self):
         title = self.request.get("title")
-        article = self.request.get("article")
+        article = self.request.get("article-body")
 
-        if title and art:
+        if title and article:
             a = Entry(title=title, article=article)
-            article.put()
+            a.put()
 
             self.redirect("/")
         else:
