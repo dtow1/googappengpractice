@@ -6,6 +6,7 @@
         <link rel= "stylesheet" type="text/css" href="css/style.css">
     </head>
     <body>
+        <h1>Jason Boyer's Blog App</h1>
         <form method="post">
             <label>
                 <div>Title</div>
@@ -25,8 +26,9 @@
 
         {% for article in articles %}
             <div class = "article-style">
-                <div class="article-title">{{article.title}}
-                </div>
+                <div class="article-title">{{article.title}}</div>
+                <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>
+
                 <pre class="article-body">{{article.article}}</pre>
             </div>
         {% endfor %}
