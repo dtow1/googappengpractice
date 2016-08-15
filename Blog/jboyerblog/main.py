@@ -52,31 +52,18 @@ class MainHandler(Handler):
     def get(self):
         self.render_front()
 
-    def post(self):
-        title = self.request.get("title")
-        article = self.request.get("article-body")
-
-        if title and article:
-            a = Entry(title=title, article=article)
-            a.put()
-
-            self.redirect("/")
-        else:
-            error = "You need to include both a title and an article"
-            self.render_front(title,article,error)
-
 class NewHandler(Handler):
     def render_front(self, title="", article="", error=""):
         articles = db.GqlQuery("SELECT * FROM Entry "
                             "ORDER BY created DESC")
-        self.render("main.html",title=title, article=article, error=error, articles = articles)
+        self.render("newpost.html",title=title, article=article, error=error, articles = articles)
 
     def get(self):
         self.render_front()
 
     def post(self):
-        title = self.request.get("title")
-        article = self.request.get("article-body")
+        title = self.request.get("subject")
+        article = self.request.get("content")
 
         if title and article:
             a = Entry(title=title, article=article)
