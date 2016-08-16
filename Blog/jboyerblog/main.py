@@ -76,12 +76,18 @@ class NewHandler(Handler):
 
 class PostHandler(Handler):
     def get(self):
-        baseurl=self.request.url[:27]
-        entrykey=self.request.url[27:]
-        data=db.GqlQuery("select * from Entry where __key__ = KEY('Entry',"+entrykey + ")")
+        # for use on local host
+        # baseurl=self.request.url[:27]
+        # entrykey=self.request.url[27:]
+
+        # for use on google app engine
+        baseurl=self.request.url[:35]
+        entrykey=self.request.url[35:]
+        data=db.GqlQuery("SELECT * FROM Entry WHERE __key__ = KEY('Entry', "+entrykey + ")")
         title=data.get().title
         article=data.get().article
         date=data.get().created.date().strftime('%A, %B %d, %Y')
+
         #self.response.out.write("<h1>" + data.get().title + "</h1>")
         self.render("postpermalink.html", title=title,article=article, date=date)
 
