@@ -68,13 +68,23 @@ class NewHandler(Handler):
         if title and article:
             a = Entry(title=title, article=article)
             a.put()
-
-            self.redirect("/")
+            key=a.key().id();
+            self.redirect("/post/" + str(key))
         else:
             error = "You need to include both a title and an article"
             self.render_front(title,article,error)
 
+class PostHandler(Handler):
+    def get(self):
+        baseurl=self.request.url[:27]
+        title=self.request.url[27:]
+        article=self.request.query_string
+        self.render("postpermalink.html", title=title,article=article)
+    def post(self):
+        self.render("postpermalink.html")
+
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
-    ('/newpost', NewHandler)
+    ('/newpost', NewHandler),
+    (r'/post/[0-9]+', PostHandler)
 ], debug=True)
