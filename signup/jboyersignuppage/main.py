@@ -99,10 +99,11 @@ class MainHandler(Handler):
                 #response = "uid: " + uid + " email: " + email + " pwd: " + pwd
                 a = Entry(user_name=uid, password = pwd, email = email)
                 a.put()
+                self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/' % str(uid))
 
         if response == "":
             # self.render("welcome.html", username="wtf mate")
-            self.redirect('/welcome?username='+username)
+            self.redirect('/welcome')
         else:
             self.render("signup.html", response = response)
 
@@ -124,7 +125,7 @@ class MainHandler(Handler):
 
 class WelcomeHandler(Handler):
     def get(self):
-        username = self.request.get('username')
+        username = self.request.cookies.get('name')
         self.render("welcome.html", username = username)
 
         # username = self.request.get('username')
@@ -135,5 +136,6 @@ class WelcomeHandler(Handler):
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
-    ('/welcome', WelcomeHandler)
+    ('/welcome', WelcomeHandler,),
+    ('/signup', MainHandler)
 ], debug=True)
