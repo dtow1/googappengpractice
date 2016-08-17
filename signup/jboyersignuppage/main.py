@@ -18,9 +18,18 @@ import webapp2
 import os
 import jinja2
 import re
+import time
+
+from google.appengine.ext import db
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape=True)
+
+class Entry(db.Model):
+    user_name = db.StringProperty(required = True)
+    password = db.StringProperty(required = True)
+    email = db.EmailProperty(required = True)
+    created = db.DateTimeProperty(auto_now_add = True)
 
 class Handler(webapp2.RequestHandler):
     def write(self, *a, **kw):
@@ -64,6 +73,32 @@ class MainHandler(Handler):
         if self.check_email(email) is None:
             response += "Please enter a valid email. "
             redirect = False;
+
+        if response == "":
+            title = self.request.get("subject")
+            article = self.request.get("content")
+
+            # Check Database for existing user
+
+            uid = self.request.get('username')
+            email = self.request.get('email')
+            pwd = self.request.get('password')
+            data=db.GqlQuery("SELECT * FROM Entry WHERE user_name = '" + uid + "'")
+            data2=db.GqlQuery("SELECT * FROM Entry WHERE email = '" + email + "'")
+
+            # OR email = '" + email+"'")
+
+            if data.get():
+                response += "User ID already exists" + str(data.get().user_name)
+
+            if data2.get():
+                response += "Email already registered" + str(data2.get().email)
+            # Add new user
+
+            else:
+                #response = "uid: " + uid + " email: " + email + " pwd: " + pwd
+                a = Entry(user_name=uid, password = pwd, email = email)
+                a.put()
 
         if response == "":
             # self.render("welcome.html", username="wtf mate")
