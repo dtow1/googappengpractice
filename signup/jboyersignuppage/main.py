@@ -20,6 +20,7 @@ import jinja2
 import re
 import time
 import hashlib
+import datetime
 
 from google.appengine.ext import db
 
@@ -196,8 +197,8 @@ class MainHandler(Handler):
 class LoginHandler(Handler):
     def get(self):
         # If user is already logged in, redirect them to welcome page
-        username = check_secure_val(self.request.cookies.get('name'))
-        if username:
+        #username = check_secure_val(self.request.cookies.get('name'))
+        if self.request.cookies.get('name'):
             self.redirect("/welcome")
         else:
             self.render("login.html", response = "")
@@ -238,6 +239,17 @@ class LoginHandler(Handler):
 
 
 
+# Class for validating user id
+class LogoutHandler(Handler):
+    def get(self):
+        # If user is already logged in, redirect them to welcome page
+        username = check_secure_val(self.request.cookies.get('name'))
+        if username:
+            expiration = "Thu, 01-Jan-1970 00:00:10 GMT"
+            self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/; Expires=%s' % (str(make_secure_val(username)), expiration))
+        self.redirect("/signup")
+
+
 # Class for rendering the welcome page, checks for a valid cookie and if one
 # does not exist, redirects to the signup page.
 class WelcomeHandler(Handler):
@@ -253,5 +265,6 @@ app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/welcome', WelcomeHandler),
     ('/signup', MainHandler),
-    ('/login', LoginHandler)
+    ('/login', LoginHandler),
+    ('/logout', LogoutHandler)
 ], debug=True)
