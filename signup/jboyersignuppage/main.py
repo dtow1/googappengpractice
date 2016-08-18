@@ -198,7 +198,7 @@ class LoginHandler(Handler):
         # If user is already logged in, redirect them to welcome page
         username = check_secure_val(self.request.cookies.get('name'))
         if username:
-            self.render("login.html", username = username)
+            self.redirect("/welcome")
         else:
             self.render("login.html", response = "")
 
@@ -222,7 +222,7 @@ class LoginHandler(Handler):
                         self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/' % str(make_secure_val(uid)))
                         self.redirect('/welcome')
                     else:
-                        response += "incorrect password"
+                        response += "Incorrect password"
             else:
                 response += "User ID does not exist, please register"
                 self.redirect('/signup', response=response)
