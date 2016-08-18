@@ -99,24 +99,23 @@ class MainHandler(Handler):
             data=db.GqlQuery("SELECT * FROM Entry WHERE user_name = '" + uid + "'")
             data2=db.GqlQuery("SELECT * FROM Entry WHERE email = '" + email + "'")
 
-            # OR email = '" + email+"'")
+
 
             if data.get():
                 response += "User ID already exists" + str(data.get().user_name)
 
             if data2.get():
                 response += "Email already registered" + str(data2.get().email)
+
             # Add new user
 
             else:
                 hash_id = hash_str(uid)
-                #response = "uid: " + uid + " email: " + email + " pwd: " + pwd
                 a = Entry(user_name=hash_id, password = hash_str(pwd), email = email)
                 a.put()
                 self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/' % str(make_secure_val(uid)))
 
         if response == "":
-            # self.render("welcome.html", username="wtf mate")
             self.redirect('/welcome')
         else:
             self.render("signup.html", response = response)
@@ -144,11 +143,7 @@ class WelcomeHandler(Handler):
             self.render("welcome.html", username = username)
         else:
             self.redirect('/signup')
-        # username = self.request.get('username')
-        # if username:
-        #     self.render("welcome.html", username="potato")
-        # else:
-        #     self.redirect("/", MainHandler)
+
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
