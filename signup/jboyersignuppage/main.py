@@ -19,11 +19,24 @@ import os
 import jinja2
 import re
 import time
+import hashlib
 
 from google.appengine.ext import db
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape=True)
+
+def make_secure_val(s):
+    return "%s|%s" % (s, hash_str(s))
+
+def hash_str(s):
+    return hashlib.md5(s + "secretword").hexdigest()
+
+def check_secure_val(h):
+    test=h.split('|')
+    if test[1] == make_secure_val(test[0]).split('|')[1]:
+        return test[0]
+
 
 class Entry(db.Model):
     user_name = db.StringProperty(required = True)
@@ -96,10 +109,11 @@ class MainHandler(Handler):
             # Add new user
 
             else:
+                hash_id = hash_str(uid)
                 #response = "uid: " + uid + " email: " + email + " pwd: " + pwd
-                a = Entry(user_name=uid, password = pwd, email = email)
+                a = Entry(user_name=hash_id, password = hash_str(pwd), email = email)
                 a.put()
-                self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/' % str(uid))
+                self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/' % str(make_secure_val(uid)))
 
         if response == "":
             # self.render("welcome.html", username="wtf mate")
@@ -125,9 +139,11 @@ class MainHandler(Handler):
 
 class WelcomeHandler(Handler):
     def get(self):
-        username = self.request.cookies.get('name')
-        self.render("welcome.html", username = username)
-
+        username = check_secure_val(self.request.cookies.get('name'))
+        if username:
+            self.render("welcome.html", username = username)
+        else:
+            self.redirect('/signup')
         # username = self.request.get('username')
         # if username:
         #     self.render("welcome.html", username="potato")
