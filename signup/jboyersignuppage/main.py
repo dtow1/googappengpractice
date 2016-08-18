@@ -208,14 +208,18 @@ class LoginHandler(Handler):
         # Gql does not support OR statements in the WHERE clause, need two
         # separate queries to make sure both UID and email are not yet
         # registered.
+
         response = ""
         uid=self.request.get('username')
         pwd=self.request.get('password')
-        response += uid + " "
-        response += pwd + " "
+
         if uid !="" and pwd!="":
+
+            # UID must be hashed because it is stored as a hash value in the
+            # database.
             data=db.GqlQuery("SELECT * FROM Entry WHERE user_name = '" + hash_str(uid) + "'")
-            # Check if UID has been registered
+
+            # If there was an entry for the UID attempt to log in
             if data.get():
                 if hash_str(uid) == data.get().user_name:
                     if hash_str(pwd) == data.get().password:
