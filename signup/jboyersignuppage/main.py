@@ -46,7 +46,7 @@ def check_secure_val(h):
 
 
 # Database setup for the registration data.
-class Entry(db.Model):
+class Users(db.Model):
     user_name = db.StringProperty(required = True)
     password = db.StringProperty(required = True)
     email = db.StringProperty()
@@ -125,8 +125,8 @@ class CreateUser():
         # registered.
         response = ""
         if uid !="" and pwd!="":
-            data=db.GqlQuery("SELECT * FROM Entry WHERE user_name = '" + uid + "'")
-            data2=db.GqlQuery("SELECT * FROM Entry WHERE email = '" + email + "'" + "and email != ''")
+            data=db.GqlQuery("SELECT * FROM Users WHERE user_name = '" + uid + "'")
+            data2=db.GqlQuery("SELECT * FROM Users WHERE email = '" + email + "'" + "and email != ''")
 
             # Check if UID has been registered
             if data.get():
@@ -139,7 +139,7 @@ class CreateUser():
             # Add new user if no errors have been identified
             if response=="":
                 # Hash and store the UID and password
-                a = Entry(user_name=hash_str(uid), password = hash_str(pwd), email = email)
+                a = Users(user_name=hash_str(uid), password = hash_str(pwd), email = email)
                 key = a.put()
                 if not key:
                     response += "Error adding to database"
@@ -153,7 +153,7 @@ class CreateUser():
 # This is the handler for the registration page. It is responsible for form
 # validation, rejecting duplicate IDs or emails, and registering the user if
 # all requirements are satisfied.
-class MainHandler(Handler):
+class SignUpHandler(Handler):
     def get(self):
         self.render("signup.html", response = "")
 
@@ -218,7 +218,7 @@ class LoginHandler(Handler):
 
             # UID must be hashed because it is stored as a hash value in the
             # database.
-            data=db.GqlQuery("SELECT * FROM Entry WHERE user_name = '" + hash_str(uid) + "'")
+            data=db.GqlQuery("SELECT * FROM Users WHERE user_name = '" + hash_str(uid) + "'")
 
             # If there was an entry for the UID attempt to log in
             if data.get():
@@ -263,9 +263,9 @@ class WelcomeHandler(Handler):
 
 
 app = webapp2.WSGIApplication([
-    ('/', MainHandler),
+    ('/', SignUpHandler),
     ('/welcome', WelcomeHandler),
-    ('/signup', MainHandler),
+    ('/signup', SignUpHandler),
     ('/login', LoginHandler),
     ('/logout', LogoutHandler)
 ], debug=True)
