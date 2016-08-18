@@ -138,8 +138,7 @@ class CreateUser():
             # Add new user if no errors have been identified
             if response=="":
                 # Hash and store the UID and password
-                hash_id = hash_str(uid)
-                a = Entry(user_name=hash_id, password = hash_str(pwd), email = email)
+                a = Entry(user_name=hash_str(hash_id), password = hash_str(pwd), email = email)
                 key = a.put()
                 if not key:
                     response += "Error adding to database"
@@ -193,6 +192,47 @@ class MainHandler(Handler):
 
 
 
+# Class for validating user id
+class LoginHandler(Handler):
+    def get(self):
+        # If user is already logged in, redirect them to welcome page
+        username = check_secure_val(self.request.cookies.get('name'))
+        if username:
+            self.render("login.html", username = username)
+        else:
+            self.render("login.html", response = "")
+
+    def post(self):
+        # Check Database for existing user
+
+        # Gql does not support OR statements in the WHERE clause, need two
+        # separate queries to make sure both UID and email are not yet
+        # registered.
+        response = ""
+        uid=self.request.get('username')
+        pwd=self.request.get('password')
+        response += uid + " "
+        response += pwd + " "
+        if uid !="" and pwd!="":
+            data=db.GqlQuery("SELECT * FROM Entry WHERE user_name = '" + hash_str(uid) + "'")
+            # Check if UID has been registered
+            if data.get():
+                if hash_str(uid) == data.get().user_name:
+                    if hash_str(pwd) == data.get().password:
+                        self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/' % str(make_secure_val(uid)))
+                        self.redirect('/welcome')
+                    else:
+                        response += "incorrect password"
+            else:
+                response += "User ID does not exist, please register"
+                self.redirect('/signup', response=response)
+        else:
+            response += "Please enter a username and passowrd"
+
+        self.render("login.html",response=response)
+
+
+
 
 # Class for rendering the welcome page, checks for a valid cookie and if one
 # does not exist, redirects to the signup page.
@@ -207,6 +247,7 @@ class WelcomeHandler(Handler):
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
-    ('/welcome', WelcomeHandler,),
-    ('/signup', MainHandler)
+    ('/welcome', WelcomeHandler),
+    ('/signup', MainHandler),
+    ('/login', LoginHandler)
 ], debug=True)
