@@ -42,12 +42,16 @@ def check_secure_val(h):
     if test[1] == make_secure_val(test[0]).split('|')[1]:
         return test[0]
 
+
+
 # Database setup for the registration data.
 class Entry(db.Model):
     user_name = db.StringProperty(required = True)
     password = db.StringProperty(required = True)
-    email = db.EmailProperty(required = True)
+    email = db.StringProperty()
     created = db.DateTimeProperty(auto_now_add = True)
+
+
 
 # Base handler class to simplify write and render operations for other methods.
 # This class is from the Udacity Full Stack Developer Nanodegree.
@@ -61,6 +65,8 @@ class Handler(webapp2.RequestHandler):
 
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
+
+
 
 # Class to validate form data
 class ValidateForm():
@@ -106,45 +112,20 @@ class ValidateForm():
         return email == "" or EMAIL_RE.match(email)
 
 
-# This is the handler for the registration page. It is responsible for form
-# validation, rejecting duplicate IDs or emails, and registering the user if
-# all requirements are satisfied.
 
-class MainHandler(Handler):
-    def get(self):
-        self.render("signup.html", response = "")
+# Class to verify user and email have not been registered. If they are new,
+# create a new user in the database.
+class CreateUser():
+    def create(self, uid="",email="",pwd=""):
+        # Check Database for existing user
 
-    def post(self):
+        # Gql does not support OR statements in the WHERE clause, need two
+        # separate queries to make sure both UID and email are not yet
+        # registered.
         response = ""
-
-        # Get each form value and test it for validity.
-        username = self.request.get('username')
-        password = self.request.get('password')
-        verify = self.request.get('verify')
-        email = self.request.get('email')
-
-
-        response = ValidateForm().validate(username = username,
-                                        password = password,
-                                        verify = verify,
-                                        email = email)
-
-        # If no error message, ok to proceed with validating and creating a
-        # user account.
-        if response == "":
-            title = self.request.get("subject")
-            article = self.request.get("content")
-
-            # Check Database for existing user
-            uid = self.request.get('username')
-            email = self.request.get('email')
-            pwd = self.request.get('password')
-
-            # Gql does not support OR statements in the WHERE clause, need two
-            # separate queries to make sure both UID and email are not yet
-            # registered.
+        if uid !="" and pwd!="":
             data=db.GqlQuery("SELECT * FROM Entry WHERE user_name = '" + uid + "'")
-            data2=db.GqlQuery("SELECT * FROM Entry WHERE email = '" + email + "'")
+            data2=db.GqlQuery("SELECT * FROM Entry WHERE email = '" + email + "'" + "and email != ''")
 
             # Check if UID has been registered
             if data.get():
@@ -155,15 +136,53 @@ class MainHandler(Handler):
                 response += "Email already registered" + str(data2.get().email)
 
             # Add new user if no errors have been identified
-
             if response=="":
                 # Hash and store the UID and password
                 hash_id = hash_str(uid)
                 a = Entry(user_name=hash_id, password = hash_str(pwd), email = email)
-                a.put()
+                key = a.put()
+                if not key:
+                    response += "Error adding to database"
+        else:
+            response += "Error adding to database"
 
-                # Set a cookie with the new user ID and its hash
-                self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/' % str(make_secure_val(uid)))
+        return response
+
+
+
+# This is the handler for the registration page. It is responsible for form
+# validation, rejecting duplicate IDs or emails, and registering the user if
+# all requirements are satisfied.
+class MainHandler(Handler):
+    def get(self):
+        self.render("signup.html", response = "")
+
+    def post(self):
+        response = ""
+
+        # Get each form value
+        username = self.request.get('username')
+        password = self.request.get('password')
+        verify = self.request.get('verify')
+        email = self.request.get('email')
+
+        # Test each form value for validity, update error message if any errors
+        # exist.
+        response = ValidateForm().validate(username = username,
+                                        password = password,
+                                        verify = verify,
+                                        email = email)
+
+        # If no error message, ok to proceed with validating and creating a
+        # user account.
+        if response == "":
+            response = CreateUser().create(uid=username,
+                                        email=email,
+                                        pwd=password)
+            self.render("signup.html", response = response)
+        if response=="":
+            # Set a cookie with the new user ID and its hash
+            self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/' % str(make_secure_val(username)))
 
         # If no errors, redirect to the welcome page. Otherwise show signup
         # page and any errors.
