@@ -138,7 +138,7 @@ class CreateUser():
             # Add new user if no errors have been identified
             if response=="":
                 # Hash and store the UID and password
-                a = Entry(user_name=hash_str(hash_id), password = hash_str(pwd), email = email)
+                a = Entry(user_name=hash_str(uid), password = hash_str(pwd), email = email)
                 key = a.put()
                 if not key:
                     response += "Error adding to database"
