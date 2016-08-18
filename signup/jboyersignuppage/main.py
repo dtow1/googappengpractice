@@ -197,8 +197,8 @@ class MainHandler(Handler):
 class LoginHandler(Handler):
     def get(self):
         # If user is already logged in, redirect them to welcome page
-        #username = check_secure_val(self.request.cookies.get('name'))
-        if self.request.cookies.get('name'):
+        username = self.request.cookies.get('name')
+        if username and username!="":
             self.redirect("/welcome")
         else:
             self.render("login.html", response = "")
@@ -243,10 +243,11 @@ class LoginHandler(Handler):
 class LogoutHandler(Handler):
     def get(self):
         # If user is already logged in, redirect them to welcome page
-        username = check_secure_val(self.request.cookies.get('name'))
-        if username:
-            expiration = "Thu, 01-Jan-1970 00:00:10 GMT"
-            self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/; Expires=%s' % (str(make_secure_val(username)), expiration))
+        username = self.request.cookies.get('name')
+        if username and username != "":
+            # expiration = "Thu, 01-Jan-1970 00:00:10 GMT"
+            # self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/; Expires=%s' % (str(make_secure_val(username)), expiration))
+            self.response.headers.add_header('Set-Cookie', 'name=; Path=/;')
         self.redirect("/signup")
 
 
@@ -254,9 +255,9 @@ class LogoutHandler(Handler):
 # does not exist, redirects to the signup page.
 class WelcomeHandler(Handler):
     def get(self):
-        username = check_secure_val(self.request.cookies.get('name'))
-        if username:
-            self.render("welcome.html", username = username)
+        username = self.request.cookies.get('name')
+        if username and username!="":
+            self.render("welcome.html", username = check_secure_val(username))
         else:
             self.redirect('/signup')
 
