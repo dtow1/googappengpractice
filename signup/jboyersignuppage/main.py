@@ -62,6 +62,49 @@ class Handler(webapp2.RequestHandler):
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
 
+# Class to validate form data
+class ValidateForm():
+    def validate(self, username,password,verify,email):
+        response=""
+
+        # Check each form item and create an error if it does not meet the
+        # requirements.
+        if self.check_name(username) is None:
+            response += "Please enter a valid username. "
+
+        if self.check_password(password) is None:
+            response += "Please enter a valid password. "
+
+        if self.check_password(verify) is None:
+            response += "Please verify your password. "
+
+        if self.check_match(password, verify) is None:
+            response += "Passwords do not match. "
+
+        if self.check_email(email) is None:
+            response += "Please enter a valid email. "
+
+        return response
+
+    #Method to check the username against the requirements regex.
+    def check_name(self, name):
+        USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+        return USER_RE.match(name)
+
+    # Method to check if a password against the requirements regex.
+    def check_password(self, password):
+        PWD_RE = re.compile(r"^.{3,20}$")
+        return PWD_RE.match(password)
+
+    # Method to verify that password and confirmation passord match.
+    def check_match(self, password, confirm):
+        return password == confirm
+
+    # Method to validate an email address against an email regex.
+    def check_email(self, email):
+        EMAIL_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
+        return email == "" or EMAIL_RE.match(email)
+
 
 # This is the handler for the registration page. It is responsible for form
 # validation, rejecting duplicate IDs or emails, and registering the user if
@@ -73,32 +116,18 @@ class MainHandler(Handler):
 
     def post(self):
         response = ""
-        redirect = False;
 
         # Get each form value and test it for validity.
         username = self.request.get('username')
-        if self.check_name(username) is None:
-           response += "Please enter a valid username. "
-           redirect = False;
-
         password = self.request.get('password')
-        if self.check_password(password) is None:
-            response += "Please enter a valid password. "
-            redirect = False;
-
         verify = self.request.get('verify')
-        if self.check_password(verify) is None:
-            response += "Please verify your password. "
-            redirect = False;
-
-        if self.check_match(password, verify) is None:
-            response += "Passwords do not match. "
-            redirect = False;
-
         email = self.request.get('email')
-        if self.check_email(email) is None:
-            response += "Please enter a valid email. "
-            redirect = False;
+
+
+        response = ValidateForm().validate(username = username,
+                                        password = password,
+                                        verify = verify,
+                                        email = email)
 
         # If no error message, ok to proceed with validating and creating a
         # user account.
@@ -143,24 +172,7 @@ class MainHandler(Handler):
         else:
             self.render("signup.html", response = response)
 
-#Method to check the username against the requirements regex.
-    def check_name(self, name):
-        USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
-        return USER_RE.match(name)
 
-# Method to check if a password against the requirements regex.
-    def check_password(self, password):
-        PWD_RE = re.compile(r"^.{3,20}$")
-        return PWD_RE.match(password)
-
-# Method to verify that password and confirmation passord match.
-    def check_match(self, password, confirm):
-        return password == confirm
-
-# Method to validate an email address against an email regex.
-    def check_email(self, email):
-        EMAIL_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
-        return email == "" or EMAIL_RE.match(email)
 
 
 # Class for rendering the welcome page, checks for a valid cookie and if one
