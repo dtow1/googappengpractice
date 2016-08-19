@@ -12,12 +12,13 @@
     <form method="post">
         <label>
             <div>Title</div>
-            <input type="text" name="subject" value = "{{title}}">
+            <input type="text" name="subject" value = "{{title}}" size="
+            60" maxlength="60">
         </label>
 
         <label>
             <div>Article</div>
-            <textarea name="content">{{article}}</textarea>
+            <textarea name="content" rows="4" cols="100">{{article}}</textarea>
         </label>
         <div class="error">{{error}}</div>
         <button type="submit">Submit</button>
