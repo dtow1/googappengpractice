@@ -5,6 +5,12 @@ body {
     height: 100%;
 }
 
+#error {
+    font-size: 2em;
+    color: red;
+    font-weight: bolder;
+}
+
 .article-style {
     width: 90%;
     margin: 0 auto;
@@ -31,4 +37,8 @@ body {
     display: inline-block;
     margin-left: 0;
     margin-right: auto;
+}
+
+.article {
+    margin-bottom: 100px;
 }

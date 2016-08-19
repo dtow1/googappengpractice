@@ -10,13 +10,17 @@
 {% endblock %}
 
 {% block content %}
+    <div id="error">{{error}}</div>
     {% for article in articles %}
         <div class = "article-style">
             <div class="article-title">{{article.title}}</div>
             <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>
             <div class="article-author">Author: {{article.author}}</div>
             <hr>
-            <pre class="article-body">{{article.article}}</pre>
+            <div class="article">
+                <pre class="article-body">{{article.article}}</pre>
+                <a href="/editpost/{{article.key().id()}}">Edit</a>
+            </div>
         </div>
     {% endfor %}
 {% endblock %}

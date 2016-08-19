@@ -287,7 +287,11 @@ class NewPostHandler(Handler):
         self.render("newpost.html",title=title, article=article, error=error, articles = articles, author=author)
 
     def get(self):
-        self.render_front()
+        username = self.request.cookies.get('name')
+        if username and username != "":
+            self.render_front()
+        else:
+            self.redirect('/login')
 
     def post(self):
         title = self.request.get("subject")
@@ -309,6 +313,8 @@ class NewPostHandler(Handler):
 def blog_key(name = 'default'):
     return db.Key.from_path('blogs', name)
 
+
+
 class PostHandler(Handler):
     def get(self, post_id):
         key = db.Key.from_path('Entry', int(post_id),parent=blog_key())
@@ -322,6 +328,38 @@ class PostHandler(Handler):
 
 
 
+class EditHandler(Handler):
+    def get(self):
+        url = self.request.url
+        post_id = url.rsplit('/', 1)[-1]
+        username = self.request.cookies.get('name')
+        if username and username != "":
+            key = db.Key.from_path('Entry', int(post_id),parent=blog_key())
+            data = db.get(key)
+            if check_secure_val(username) == data.author:
+                title= data.title
+                article= data.article
+                date=data.created.date().strftime('%A, %B %d, %Y')
+                author = data.author
+                self.response.headers.add_header('Set-Cookie', 'post_id=%s; Path=/' % str(post_id))
+                self.render("editpost.html", title=title,article=article, date=date, author=author, id=post_id)
+            else:
+                error = "Only the author of the article may edit it"
+                self.render("main.html",error=error)
+        else:
+            self.redirect("/login")
+
+    def post(self):
+        article = self.request.get("content")
+        post_id = self.request.cookies.get('post_id')
+        key = db.Key.from_path('Entry', int(post_id), parent=blog_key())
+        data = db.get(key)
+        data.article = self.request.get("content")
+        data.put()
+        self.redirect("/")
+
+
+
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/welcome', WelcomeHandler),
@@ -329,5 +367,6 @@ app = webapp2.WSGIApplication([
     ('/login', LoginHandler),
     ('/logout', LogoutHandler),
     ('/newpost', NewPostHandler),
-    (r'/post/([0-9]+)', PostHandler)
+    (r'/post/([0-9]+)', PostHandler),
+    (r'/editpost/[0-9]+', EditHandler)
 ], debug=True)
