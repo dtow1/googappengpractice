@@ -270,10 +270,10 @@ class WelcomeHandler(Handler):
 
 
 class MainHandler(Handler):
-    def render_front(self, title="", article="", error=""):
+    def render_front(self, title="", article="", error="",author=""):
         articles = db.GqlQuery("SELECT * FROM Entry "
                             "ORDER BY created DESC LIMIT 10")
-        self.render("main.html",title=title, article=article, error=error, articles = articles)
+        self.render("main.html",title=title, article=article, error=error, articles = articles,author=author)
 
     def get(self):
         self.render_front()
@@ -281,10 +281,10 @@ class MainHandler(Handler):
 
 
 class NewPostHandler(Handler):
-    def render_front(self, title="", article="", error=""):
+    def render_front(self, title="", article="", error="",author=""):
         articles = db.GqlQuery("SELECT * FROM Entry "
                             "ORDER BY created DESC")
-        self.render("newpost.html",title=title, article=article, error=error, articles = articles)
+        self.render("newpost.html",title=title, article=article, error=error, articles = articles, author=author)
 
     def get(self):
         self.render_front()
@@ -317,7 +317,8 @@ class PostHandler(Handler):
         title= data.title
         article= data.article
         date=data.created.date().strftime('%A, %B %d, %Y')
-        self.render("postpermalink.html", title=title,article=article, date="")
+        author = data.author
+        self.render("postpermalink.html", title=title,article=article, date=date, author=author)
 
 
 

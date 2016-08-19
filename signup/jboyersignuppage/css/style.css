@@ -25,3 +25,10 @@ body {
     margin-right: 0;
     text-align: right;
 }
+
+.article-author {
+    width: 100%;
+    display: inline-block;
+    margin-left: 0;
+    margin-right: auto;
+}
