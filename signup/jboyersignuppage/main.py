@@ -59,6 +59,7 @@ class Entry(db.Model):
     title = db.StringProperty(required = True)
     article = db.TextProperty(required = True)
     created = db.DateTimeProperty(auto_now_add = True)
+    author = db.StringProperty(required = True)
 
 # Base handler class to simplify write and render operations for other methods.
 # This class is from the Udacity Full Stack Developer Nanodegree.
@@ -291,15 +292,19 @@ class NewPostHandler(Handler):
     def post(self):
         title = self.request.get("subject")
         article = self.request.get("content")
+        username = check_secure_val(self.request.cookies.get('name'))
 
-        if title and article:
-            a = Entry(title=title, article=article, parent=blog_key())
-            a.put()
-            url = "/post/" + str(a.key().id())
-            self.redirect(url)
+        if username != "":
+            if title and article:
+                a = Entry(title=title, article=article, parent=blog_key(), author=username)
+                a.put()
+                url = "/post/" + str(a.key().id())
+                self.redirect(url)
+            else:
+                error = "You need to include both a title and an article"
+                self.render_front(title,article,error)
         else:
-            error = "You need to include both a title and an article"
-            self.render_front(title,article,error)
+            redirect("/login")
 
 def blog_key(name = 'default'):
     return db.Key.from_path('blogs', name)
