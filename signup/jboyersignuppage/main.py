@@ -235,8 +235,7 @@ class LoginHandler(Handler):
                     else:
                         response += "Incorrect password"
             else:
-                response += "User ID does not exist, please register"
-                self.redirect('/signup', response=response)
+                self.redirect('/signup')
         else:
             response += "Please enter a username and passowrd"
 
@@ -307,20 +306,9 @@ def blog_key(name = 'default'):
 
 class PostHandler(Handler):
     def get(self, post_id):
-        # for use on local host
-        #baseurl=self.request.url[:27]
-        #entrykey=self.request.url[27:]
-
-        # for use on google app engine
-        # baseurl=self.request.url[:35]
-        # entrykey=self.request.url[35:]
-        #data=db.GqlQuery("SELECT * FROM Entry WHERE ID = '" + entrykey + "'")
-        #data=db.GqlQuery("SELECT * FROM Entry WHERE __key__ = KEY('Entry', "+entrykey + ")")
         key = db.Key.from_path('Entry', int(post_id),parent=blog_key())
         data = db.get(key)
-                   # data=db.GqlQuery("SELECT * FROM Users WHERE user_name = '" + uid + "'")
-        #data = db.GqlQuery("SELECT * FROM Entry "
-         #                   "ORDER BY created DESC LIMIT 1")
+
         title= data.title
         article= data.article
         date=data.created.date().strftime('%A, %B %d, %Y')
