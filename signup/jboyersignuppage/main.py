@@ -54,6 +54,12 @@ class Users(db.Model):
 
 
 
+# Database setup for the article data.
+class Entry(db.Model):
+    title = db.StringProperty(required = True)
+    article = db.TextProperty(required = True)
+    created = db.DateTimeProperty(auto_now_add = True)
+
 # Base handler class to simplify write and render operations for other methods.
 # This class is from the Udacity Full Stack Developer Nanodegree.
 class Handler(webapp2.RequestHandler):
@@ -238,7 +244,6 @@ class LoginHandler(Handler):
 
 
 
-
 # Class for validating user id
 class LogoutHandler(Handler):
     def get(self):
@@ -249,6 +254,7 @@ class LogoutHandler(Handler):
             # self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/; Expires=%s' % (str(make_secure_val(username)), expiration))
             self.response.headers.add_header('Set-Cookie', 'name=; Path=/;')
         self.redirect("/signup")
+
 
 
 # Class for rendering the welcome page, checks for a valid cookie and if one
@@ -262,10 +268,72 @@ class WelcomeHandler(Handler):
             self.redirect('/signup')
 
 
+
+class MainHandler(Handler):
+    def render_front(self, title="", article="", error=""):
+        articles = db.GqlQuery("SELECT * FROM Entry "
+                            "ORDER BY created DESC LIMIT 10")
+        self.render("main.html",title=title, article=article, error=error, articles = articles)
+
+    def get(self):
+        self.render_front()
+
+
+
+class NewPostHandler(Handler):
+    def render_front(self, title="", article="", error=""):
+        articles = db.GqlQuery("SELECT * FROM Entry "
+                            "ORDER BY created DESC")
+        self.render("newpost.html",title=title, article=article, error=error, articles = articles)
+
+    def get(self):
+        self.render_front()
+
+    def post(self):
+        title = self.request.get("subject")
+        article = self.request.get("content")
+
+        if title and article:
+            a = Entry(title=title, article=article, parent=blog_key())
+            a.put()
+            url = "/post/" + str(a.key().id())
+            self.redirect(url)
+        else:
+            error = "You need to include both a title and an article"
+            self.render_front(title,article,error)
+
+def blog_key(name = 'default'):
+    return db.Key.from_path('blogs', name)
+
+class PostHandler(Handler):
+    def get(self, post_id):
+        # for use on local host
+        #baseurl=self.request.url[:27]
+        #entrykey=self.request.url[27:]
+
+        # for use on google app engine
+        # baseurl=self.request.url[:35]
+        # entrykey=self.request.url[35:]
+        #data=db.GqlQuery("SELECT * FROM Entry WHERE ID = '" + entrykey + "'")
+        #data=db.GqlQuery("SELECT * FROM Entry WHERE __key__ = KEY('Entry', "+entrykey + ")")
+        key = db.Key.from_path('Entry', int(post_id),parent=blog_key())
+        data = db.get(key)
+                   # data=db.GqlQuery("SELECT * FROM Users WHERE user_name = '" + uid + "'")
+        #data = db.GqlQuery("SELECT * FROM Entry "
+         #                   "ORDER BY created DESC LIMIT 1")
+        title= data.title
+        article= data.article
+        date=data.created.date().strftime('%A, %B %d, %Y')
+        self.render("postpermalink.html", title=title,article=article, date="")
+
+
+
 app = webapp2.WSGIApplication([
-    ('/', SignUpHandler),
+    ('/', MainHandler),
     ('/welcome', WelcomeHandler),
     ('/signup', SignUpHandler),
     ('/login', LoginHandler),
-    ('/logout', LogoutHandler)
+    ('/logout', LogoutHandler),
+    ('/newpost', NewPostHandler),
+    (r'/post/([0-9]+)', PostHandler)
 ], debug=True)

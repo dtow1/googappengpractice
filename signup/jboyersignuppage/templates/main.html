@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block head %}
+    <title>New Post</title>
+    <link rel= "stylesheet" type="text/css" href="/css/style.css">
+{% endblock %}
+
+{% block headingmessage %}
+<h1 id="title">Jason Boyer's Blog App</h1>
+<h2>Recent Posts</h2>
+{% endblock %}
+
+{% block content %}
+    {% for article in articles %}
+        <div class = "article-style">
+            <div class="article-title">{{article.title}}</div>
+            <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>
+            <hr>
+            <pre class="article-body">{{article.article}}</pre>
+        </div>
+    {% endfor %}
+{% endblock %}

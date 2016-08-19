@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block head %}
+    <title>Your Latest Post</title>
+    <link rel= "stylesheet" type="text/css" href="../css/style.css">
+{% endblock %}
+
+{% block headingmessage %}
+    <h1 id="title">Jason Boyer's Blog App</h1>
+{% endblock %}
+
+{% block content %}
+    <div class = "article-style">
+        <div class="article-title">{{title}}</div>
+        <div class="article-date">{{date}}</div>
+        <hr>
+        <pre class="article-body">{{article}}</pre>
+    </div>
+{% endblock %}

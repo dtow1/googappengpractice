@@ -52,7 +52,7 @@ class MainHandler(Handler):
     def get(self):
         self.render_front()
 
-class NewHandler(Handler):
+class NewPostHandler(Handler):
     def render_front(self, title="", article="", error=""):
         articles = db.GqlQuery("SELECT * FROM Entry "
                             "ORDER BY created DESC")
@@ -77,22 +77,20 @@ class NewHandler(Handler):
 class PostHandler(Handler):
     def get(self):
         # for use on local host
-        # baseurl=self.request.url[:27]
-        # entrykey=self.request.url[27:]
+        baseurl=self.request.url[:27]
+        entrykey=self.request.url[27:]
 
         # for use on google app engine
-        baseurl=self.request.url[:35]
-        entrykey=self.request.url[35:]
+        # baseurl=self.request.url[:35]
+        # entrykey=self.request.url[35:]
         data=db.GqlQuery("SELECT * FROM Entry WHERE __key__ = KEY('Entry', "+entrykey + ")")
         title=data.get().title
         article=data.get().article
         date=data.get().created.date().strftime('%A, %B %d, %Y')
-
-        #self.response.out.write("<h1>" + data.get().title + "</h1>")
         self.render("postpermalink.html", title=title,article=article, date=date)
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
-    ('/newpost', NewHandler),
+    ('/newpost', NewPostHandler),
     (r'/post/[0-9]+', PostHandler)
 ], debug=True)
