@@ -435,10 +435,36 @@ class UnLikeHandler(Handler):
             self.redirect('/login')
 
 class CommentHandler(Handler):
-    def get(self,post_id):
+    def get(self, title="", article="", error="",author="" ):
+        url = self.request.url
+        post_id = url.rsplit('/', 1)[-1]
         username = self.request.cookies.get('name')
         if username and username != "":
-            time.sleep(1)
+            key = db.Key.from_path('Entry', int(post_id), parent=blog_key())
+            mainarticle = db.get(key)
+            articles = db.GqlQuery("SELECT * FROM Entry "
+                            "WHERE parent_post = " + post_id +
+                            "ORDER BY created DESC LIMIT 10")
+            self.render("comment.html",title=title, article=article, error=error, articles = articles, author=author, mainarticle= mainarticle)
+        else:
+            self.render("/")
+
+    def post(self):
+        title = self.request.get("subject")
+        article = self.request.get("content")
+        parentid = self.request.get("parentid")
+        username = check_secure_val(self.request.cookies.get('name'))
+
+        if username and username != "":
+            if title and article:
+                a = Entry(title=title, article=article, parent=blog_key(), author=username, parent_post = int(parentid))
+                a.put()
+                self.redirect("/post/" + str(a.key().id()))
+            else:
+                error = "You need to include both a title and an article"
+                self.render_front(title,article,error)
+        else:
+            redirect("/login")
 
 
 app = webapp2.WSGIApplication([
@@ -452,5 +478,5 @@ app = webapp2.WSGIApplication([
     (r'/editpost/[0-9]+', EditHandler), # Parenthesis removed to avoid issue with Posting
     (r'/like/([0-9]+)', LikeHandler),
     (r'/unlike/([0-9]+)', UnLikeHandler),
-    (r'/comment/([0-9]+)', CommentHandler)
+    (r'/comment/[0-9]+', CommentHandler) # Parenthesis removed to avoid issue with Posting
 ], debug=True)

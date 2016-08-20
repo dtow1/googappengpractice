@@ -28,12 +28,14 @@
     <hr>
 
     {% for article in articles %}
-        <div class = "article-style">
-            <div class="article-title">{{article.title}}</div>
-            <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>
-            <div class="article-author">Author: {{article.author}}</div>
-            <hr>
-            <pre class="article-body">{{article.article}}</pre>
-        </div>
+        {% if article.parent_post == 0: %}
+            <div class = "article-style">
+                <div class="article-title">{{article.title}}</div>
+                <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>
+                <div class="article-author">Author: {{article.author}}</div>
+                <hr>
+                <pre class="article-body">{{article.article}}</pre>
+            </div>
+        {% endif %}
     {% endfor %}
 {% endblock %}

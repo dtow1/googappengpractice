@@ -9,6 +9,15 @@
 {% endblock %}
 
 {% block content %}
+
+    <div class = "article-style">
+        <div class="article-title">{{mainarticle.title}}</div>
+        <div class="article-date">{{mainarticle.created.date().strftime('%A, %B %d, %Y')}}</div>
+        <div class="article-author">Author: {{mainarticle.author}}</div>
+        <hr>
+        <pre class="article-body">{{mainarticle.article}}</pre>
+    </div>
+
     <form method="post">
         <label>
             <div>Title</div>
@@ -20,6 +29,7 @@
             <div>Article</div>
             <textarea name="content" rows="4" cols="100">{{article}}</textarea>
         </label>
+        <input type="hidden" name="parentid" value="{{mainarticle.key().id()}}">
         <div class="error">{{error}}</div>
         <button type="submit">Submit</button>
     </form>
