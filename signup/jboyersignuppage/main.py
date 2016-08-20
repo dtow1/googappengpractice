@@ -386,6 +386,29 @@ class LikeHandler(Handler):
         else:
             self.redirect('/login')
 
+class UnLikeHandler(Handler):
+    def get(self,post_id):
+        username = self.request.cookies.get('name')
+        if username and username != "":
+            key = db.Key.from_path('Entry', int(post_id), parent=blog_key())
+            data = db.get(key)
+            if SameUser.compare(check_secure_val_(username),data.author):
+
+            else if check_secure_val(username) in data.liked_by_list:
+                if data.like_count>0: # This should not matter but just in
+                                      # case a situation occurs where a user
+                                      # name is in the liked list and the
+                                      # count had not been properly
+                                      # decremented.
+                    data.like_count = data.like_count - 1
+                data.liked_by_list.remove(check_secure_val(username))
+                data.put()
+                time.sleep(1)
+            self.write(data.liked_by_list)
+            # self.redirect("/")
+        else:
+            self.redirect('/login')
+
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/welcome', WelcomeHandler),
@@ -395,6 +418,6 @@ app = webapp2.WSGIApplication([
     ('/newpost', NewPostHandler),
     (r'/post/([0-9]+)', PostHandler),
     (r'/editpost/[0-9]+', EditHandler), # Parenthesis removed to avoid issue with Posting
-    (r'/like/([0-9]+)', LikeHandler)
-    (r'/unlike/([0-9]))
+    (r'/like/([0-9]+)', LikeHandler),
+    (r'/unlike/([0-9]+)', UnLikeHandler)
 ], debug=True)
