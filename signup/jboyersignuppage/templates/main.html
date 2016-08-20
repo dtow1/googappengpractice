@@ -16,7 +16,7 @@
             <div class="article-title">{{article.title}}</div>
             <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>
             <div class="article-author">Author: {{article.author}}</div>
-            <div class="likes">Likes: {{article.like_count}} <a href="/like/{{article.key().id()}}">Like</a></div>
+            <div class="likes">Likes: {{article.like_count}} <a href="/like/{{article.key().id()}}">Like</a> / <a href="/unlike/{{article.key().id()}}">Unlike</a></div>
             <hr>
             <div class="article">
                 <pre class="article-body">{{article.article}}</pre>

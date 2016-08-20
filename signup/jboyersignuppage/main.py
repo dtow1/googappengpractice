@@ -375,10 +375,13 @@ class LikeHandler(Handler):
         if username and username != "":
             key = db.Key.from_path('Entry', int(post_id),parent=blog_key())
             data = db.get(key)
-            if not SameUser().compare(check_secure_val(username),data.author):
+            if not SameUser().compare(check_secure_val(username),data.author) \
+                    and check_secure_val(username) not in data.liked_by_list:
                 data.like_count = data.like_count + 1
+                data.liked_by_list.append(check_secure_val(username))
                 data.put()
                 time.sleep(1)
+            #self.write(data.liked_by_list)
             self.redirect("/")
         else:
             self.redirect('/login')
@@ -392,5 +395,6 @@ app = webapp2.WSGIApplication([
     ('/newpost', NewPostHandler),
     (r'/post/([0-9]+)', PostHandler),
     (r'/editpost/[0-9]+', EditHandler), # Parenthesis removed to avoid issue with Posting
-    ('/like/([0-9]+)', LikeHandler)
+    (r'/like/([0-9]+)', LikeHandler)
+    (r'/unlike/([0-9]))
 ], debug=True)
