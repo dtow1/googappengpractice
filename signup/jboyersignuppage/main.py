@@ -60,8 +60,9 @@ class Entry(db.Model):
     article = db.TextProperty(required = True)
     created = db.DateTimeProperty(auto_now_add = True)
     author = db.StringProperty(required = True)
-    like_count = db.IntegerProperty(default=0)
-    liked_by_list = db.StringListProperty(default="")
+    like_count = db.IntegerProperty(default = 0)
+    liked_by_list = db.StringListProperty(default = "")
+    parent_post = db.IntegerProperty(required = True)
 
 # Base handler class to simplify write and render operations for other methods.
 # This class is from the Udacity Full Stack Developer Nanodegree.
@@ -274,6 +275,7 @@ class WelcomeHandler(Handler):
 class MainHandler(Handler):
     def render_front(self, title="", article="", error="",author=""):
         articles = db.GqlQuery("SELECT * FROM Entry "
+                            "WHERE parent_post = 0 "
                             "ORDER BY created DESC LIMIT 10")
         self.render("main.html",title=title, article=article, error=error, articles = articles,author=author)
 
@@ -302,7 +304,7 @@ class NewPostHandler(Handler):
 
         if username != "":
             if title and article:
-                a = Entry(title=title, article=article, parent=blog_key(), author=username)
+                a = Entry(title=title, article=article, parent=blog_key(), author=username, parent_post = 0)
                 a.put()
                 self.redirect("/post/" + str(a.key().id()))
             else:
@@ -432,6 +434,13 @@ class UnLikeHandler(Handler):
         else:
             self.redirect('/login')
 
+class CommentHandler(Handler):
+    def get(self,post_id):
+        username = self.request.cookies.get('name')
+        if username and username != "":
+            time.sleep(1)
+
+
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/welcome', WelcomeHandler),
@@ -442,5 +451,6 @@ app = webapp2.WSGIApplication([
     (r'/post/([0-9]+)', PostHandler),
     (r'/editpost/[0-9]+', EditHandler), # Parenthesis removed to avoid issue with Posting
     (r'/like/([0-9]+)', LikeHandler),
-    (r'/unlike/([0-9]+)', UnLikeHandler)
+    (r'/unlike/([0-9]+)', UnLikeHandler),
+    (r'/comment/([0-9]+)', CommentHandler)
 ], debug=True)

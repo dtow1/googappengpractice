@@ -15,6 +15,12 @@ indexes:
   - name: email
   - name: email
 
+- kind: Entry
+  properties:
+  - name: parent_post
+  - name: created
+    direction: desc
+
 - kind: Users
   properties:
   - name: email
