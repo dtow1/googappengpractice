@@ -346,7 +346,7 @@ class EditHandler(Handler):
                 self.render("editpost.html", title=title,article=article, date=date, author=author, id=post_id)
             else:
                 error = "Only the author of the article may edit it"
-                self.render("main.html",error=error)
+                self.render("error.html",error=error)
         else:
             self.redirect("/login")
 
@@ -372,19 +372,39 @@ class SameUser():
 class LikeHandler(Handler):
     def get(self,post_id):
         username = self.request.cookies.get('name')
-        if username and username != "":
-            key = db.Key.from_path('Entry', int(post_id),parent=blog_key())
+        if username and username !="":
+            key = db.Key.from_path('Entry', int(post_id),parent = blog_key())
             data = db.get(key)
-            if not SameUser().compare(check_secure_val(username),data.author) \
-                    and check_secure_val(username) not in data.liked_by_list:
+            if SameUser().compare(check_secure_val(username),data.author):
+                #self.write(username + " " + data.author + " " + check_secure_val(username))
+                error = ("You may only like or unlike posts that you did not"
+                         "create")
+                self.render("error.html",error=error)
+            elif check_secure_val(username) not in data.liked_by_list:
                 data.like_count = data.like_count + 1
                 data.liked_by_list.append(check_secure_val(username))
                 data.put()
                 time.sleep(1)
-            #self.write(data.liked_by_list)
-            self.redirect("/")
+                self.redirect("/")
+            else:
+                self.redirect("/")
         else:
             self.redirect('/login')
+        # if username and username != "":
+        #     key = db.Key.from_path('Entry', int(post_id),parent=blog_key())
+        #     data = db.get(key)
+        #     if SameUser().compare(check_secure_val(username),data.author):
+        #         error = ("You may only like or unlike posts that you did not"
+        #                  "create")
+        #         self.render("error.html",error=error)
+        #     elif check_secure_val(username) not in data.liked_by_list:
+        #         data.like_count = data.like_count + 1
+        #         data.liked_by_list.append(check_secure_val(username))
+        #         data.put()
+        #         time.sleep(1)
+        #     self.redirect("/")
+        # else:
+        #     self.redirect('/login')
 
 class UnLikeHandler(Handler):
     def get(self,post_id):
@@ -392,9 +412,11 @@ class UnLikeHandler(Handler):
         if username and username != "":
             key = db.Key.from_path('Entry', int(post_id), parent=blog_key())
             data = db.get(key)
-            if SameUser.compare(check_secure_val_(username),data.author):
-
-            else if check_secure_val(username) in data.liked_by_list:
+            if SameUser().compare(check_secure_val(username),data.author):
+                error = ("You may only like or unlike posts that you did not"
+                         "create")
+                self.render("error.html",error=error)
+            elif check_secure_val(username) in data.liked_by_list:
                 if data.like_count>0: # This should not matter but just in
                                       # case a situation occurs where a user
                                       # name is in the liked list and the
@@ -404,8 +426,9 @@ class UnLikeHandler(Handler):
                 data.liked_by_list.remove(check_secure_val(username))
                 data.put()
                 time.sleep(1)
-            self.write(data.liked_by_list)
-            # self.redirect("/")
+                self.redirect("/")
+            else:
+                self.redirect("/")
         else:
             self.redirect('/login')
 
