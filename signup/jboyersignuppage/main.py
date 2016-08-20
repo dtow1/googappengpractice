@@ -60,6 +60,8 @@ class Entry(db.Model):
     article = db.TextProperty(required = True)
     created = db.DateTimeProperty(auto_now_add = True)
     author = db.StringProperty(required = True)
+    like_count = db.IntegerProperty(default=0)
+    liked_by_list = db.StringListProperty(default="")
 
 # Base handler class to simplify write and render operations for other methods.
 # This class is from the Udacity Full Stack Developer Nanodegree.
@@ -302,8 +304,7 @@ class NewPostHandler(Handler):
             if title and article:
                 a = Entry(title=title, article=article, parent=blog_key(), author=username)
                 a.put()
-                url = "/post/" + str(a.key().id())
-                self.redirect(url)
+                self.redirect("/post/" + str(a.key().id()))
             else:
                 error = "You need to include both a title and an article"
                 self.render_front(title,article,error)
@@ -354,11 +355,33 @@ class EditHandler(Handler):
         post_id = self.request.cookies.get('post_id')
         key = db.Key.from_path('Entry', int(post_id), parent=blog_key())
         data = db.get(key)
-        data.article = self.request.get("content")
+        data.article = article
         data.put()
+        #Sleep for one second before redirecting and updating the post
+        time.sleep(1)
         self.redirect("/")
 
+# Class for comparing post owner to currently logged in user
+class SameUser():
+    def compare(self,ownername, username):
+        if ownername == username:
+            return True
+        else:
+            return False
 
+class LikeHandler(Handler):
+    def get(self,post_id):
+        username = self.request.cookies.get('name')
+        if username and username != "":
+            key = db.Key.from_path('Entry', int(post_id),parent=blog_key())
+            data = db.get(key)
+            if not SameUser().compare(check_secure_val(username),data.author):
+                data.like_count = data.like_count + 1
+                data.put()
+                time.sleep(1)
+            self.redirect("/")
+        else:
+            self.redirect('/login')
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
@@ -368,5 +391,6 @@ app = webapp2.WSGIApplication([
     ('/logout', LogoutHandler),
     ('/newpost', NewPostHandler),
     (r'/post/([0-9]+)', PostHandler),
-    (r'/editpost/[0-9]+', EditHandler)
+    (r'/editpost/[0-9]+', EditHandler), # Parenthesis removed to avoid issue with Posting
+    ('/like/([0-9]+)', LikeHandler)
 ], debug=True)
