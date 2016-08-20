@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block head %}
     <title>Comment</title>
-    <link rel= "stylesheet" type="text/css" href="css/style.css">
+    <link rel= "stylesheet" type="text/css" href="/css/style.css">
 {% endblock %}
 
 {% block headingmessage %}
@@ -38,9 +38,8 @@
     <hr>
     <br>
     <hr>
-
     {% for article in articles %}
-        {% if article.parent_id == postid: %}
+        {% if article.parent_post == mainarticle.key().id(): %}
         <div class = "article-style">
             <div class="article-title">{{article.title}}</div>
             <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>

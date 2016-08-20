@@ -459,13 +459,25 @@ class CommentHandler(Handler):
             if title and article:
                 a = Entry(title=title, article=article, parent=blog_key(), author=username, parent_post = int(parentid))
                 a.put()
-                self.redirect("/post/" + str(a.key().id()))
+                self.redirect("/postcomment/" + str(parentid))
             else:
                 error = "You need to include both a title and an article"
                 self.render_front(title,article,error)
         else:
             redirect("/login")
 
+class PostCommentHandler(Handler):
+    def get(self, post_id, title="", article="", error="",author="" ):
+        username = self.request.cookies.get('name')
+        if username and username != "":
+            key = db.Key.from_path('Entry', int(post_id), parent=blog_key())
+            article = db.get(key)
+            articles = db.GqlQuery("SELECT * FROM Entry "
+                            "WHERE parent_post = " + post_id +
+                            "ORDER BY created DESC LIMIT 10")
+            self.render("displaypost.html",title=title, article=article, error=error, articles = articles, author=author, rootID=post_id)
+        else:
+            self.render("/")
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
@@ -478,5 +490,6 @@ app = webapp2.WSGIApplication([
     (r'/editpost/[0-9]+', EditHandler), # Parenthesis removed to avoid issue with Posting
     (r'/like/([0-9]+)', LikeHandler),
     (r'/unlike/([0-9]+)', UnLikeHandler),
-    (r'/comment/[0-9]+', CommentHandler) # Parenthesis removed to avoid issue with Posting
+    (r'/comment/[0-9]+', CommentHandler), # Parenthesis removed to avoid issue with Posting
+    (r'/postcomment/([0-9]+)', PostCommentHandler)
 ], debug=True)

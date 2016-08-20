@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block head %}
+    <title>Comment</title>
+    <link rel= "stylesheet" type="text/css" href="/css/style.css">
+{% endblock %}
+
+{% block headingmessage %}
+<h1 id="title">Commenting on Post: {{title}}</h1>
+{% endblock %}
+
+{% block content %}
+
+    <div class = "article-style">
+        <div class="article-title">Main article: {{article.title}}</div>
+        <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>
+        <div class="article-author">Author: {{article.author}}</div>
+        <hr>
+        <pre class="article-body">{{article.article}}</pre>
+    </div>
+
+    <hr>
+    <br>
+    <hr>
+    {% for article in articles %}
+        {% if "" ~ article.parent_post == "" ~ rootID: %}
+        <div class = "article-style">
+            <div class="article-title">{{article.title}}</div>
+            <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>
+            <div class="article-author">Author: {{article.author}}</div>
+            <hr>
+            <pre class="article-body">{{article.article}}</pre>
+        </div>
+        {% endif %}
+    {% endfor %}
+{% endblock %}
