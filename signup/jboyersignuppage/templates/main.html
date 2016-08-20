@@ -12,17 +12,19 @@
 {% block content %}
     <div id="error">{{error}}</div>
     {% for article in articles %}
-        <div class = "article-style">
-            <div class="article-title">{{article.title}}</div>
-            <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>
-            <div class="article-author">Author: {{article.author}}</div>
-            <div class="likes">Likes: {{article.like_count}} <a href="/like/{{article.key().id()}}">Like</a> / <a href="/unlike/{{article.key().id()}}">Unlike</a></div>
-            <div class="comment"><a href="/comment/{{article.key().id()}}">Comment</a></div>
-            <hr>
-            <div class="article">
-                <pre class="article-body">{{article.article}}</pre>
-                <a href="/editpost/{{article.key().id()}}">Edit</a>
+        {% if article.parent_post == 0: %}
+            <div class = "article-style">
+                <div class="article-title">{{article.title}}</div>
+                <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>
+                <div class="article-author">Author: {{article.author}}</div>
+                <div class="likes">Likes: {{article.like_count}} <a href="/like/{{article.key().id()}}">Like</a> / <a href="/unlike/{{article.key().id()}}">Unlike</a></div>
+                <div class="comment"><a href="/comment/{{article.key().id()}}">Comment</a></div>
+                <hr>
+                <div class="article">
+                    <pre class="article-body">{{article.article}}</pre>
+                    <a href="/editpost/{{article.key().id()}}">Edit</a>
+                </div>
             </div>
-        </div>
+        {% endif %}
     {% endfor %}
 {% endblock %}

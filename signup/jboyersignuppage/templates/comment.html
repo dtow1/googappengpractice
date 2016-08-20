@@ -30,7 +30,7 @@
     <hr>
 
     {% for article in articles %}
-        {% if article.parent_id == {{postid}} %}
+        {% if article.parent_id == postid: %}
         <div class = "article-style">
             <div class="article-title">{{article.title}}</div>
             <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>
