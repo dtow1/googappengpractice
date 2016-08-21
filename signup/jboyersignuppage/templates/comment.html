@@ -6,6 +6,13 @@
 
 {% block headingmessage %}
 <h1 id="title">Commenting on Post: {{title}}</h1>
+    {% if username and username != "": %}
+        Logged in as: {{username}}
+        <a href="/logout">Sign out</a>
+    {% else %}
+        Not logged in.
+        <a href="/login">Sign in</a>
+    {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -46,6 +53,7 @@
             <div class="article-author">Author: {{article.author}}</div>
             <hr>
             <pre class="article-body">{{article.article}}</pre>
+            <a href="/editpost/{{article.key().id()}}">Edit</a>
         </div>
         {% endif %}
     {% endfor %}

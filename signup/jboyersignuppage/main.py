@@ -256,7 +256,7 @@ class LogoutHandler(Handler):
             # expiration = "Thu, 01-Jan-1970 00:00:10 GMT"
             # self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/; Expires=%s' % (str(make_secure_val(username)), expiration))
             self.response.headers.add_header('Set-Cookie', 'name=; Path=/;')
-        self.redirect("/signup")
+        self.redirect("/login")
 
 
 
@@ -274,10 +274,12 @@ class WelcomeHandler(Handler):
 
 class MainHandler(Handler):
     def render_front(self, title="", article="", error="",author=""):
-        articles = db.GqlQuery("SELECT * FROM Entry "
+        username = self.request.cookies.get('name')
+        if username and username != "":
+            articles = db.GqlQuery("SELECT * FROM Entry "
                             "WHERE parent_post = 0 "
                             "ORDER BY created DESC LIMIT 10")
-        self.render("main.html",title=title, article=article, error=error, articles = articles,author=author)
+        self.render("main.html",title=title, article=article, error=error, articles = articles,author=author, username=check_secure_val(username))
 
     def get(self):
         self.render_front()
@@ -285,15 +287,11 @@ class MainHandler(Handler):
 
 
 class NewPostHandler(Handler):
-    def render_front(self, title="", article="", error="",author=""):
-        articles = db.GqlQuery("SELECT * FROM Entry "
-                            "ORDER BY created DESC")
-        self.render("newpost.html",title=title, article=article, error=error, articles = articles, author=author)
-
-    def get(self):
+    def get(self, title="", article="", error="",author="",articles="",username=""):
         username = self.request.cookies.get('name')
         if username and username != "":
-            self.render_front()
+            articles = db.GqlQuery("SELECT * FROM Entry ORDER BY created DESC")
+            self.render("newpost.html",title=title, article=article, error=error, articles = articles, author=author, username=check_secure_val(username))
         else:
             self.redirect('/login')
 
@@ -320,14 +318,18 @@ def blog_key(name = 'default'):
 
 class PostHandler(Handler):
     def get(self, post_id):
-        key = db.Key.from_path('Entry', int(post_id),parent=blog_key())
-        data = db.get(key)
+        username = self.request.cookies.get('name')
+        if username and username != "":
+            key = db.Key.from_path('Entry', int(post_id),parent=blog_key())
+            data = db.get(key)
 
-        title= data.title
-        article= data.article
-        date=data.created.date().strftime('%A, %B %d, %Y')
-        author = data.author
-        self.render("postpermalink.html", title=title,article=article, date=date, author=author)
+            title= data.title
+            article= data.article
+            date=data.created.date().strftime('%A, %B %d, %Y')
+            author = data.author
+            self.render("postpermalink.html", title=title,article=article, date=date, author=author,username=check_secure_val(username))
+        else:
+            self.redirect('/')
 
 
 
@@ -345,7 +347,7 @@ class EditHandler(Handler):
                 date=data.created.date().strftime('%A, %B %d, %Y')
                 author = data.author
                 self.response.headers.add_header('Set-Cookie', 'post_id=%s; Path=/' % str(post_id))
-                self.render("editpost.html", title=title,article=article, date=date, author=author, id=post_id)
+                self.render("editpost.html", title=title,article=article, date=date, author=author, id=post_id, username=check_secure_val(username))
             else:
                 error = "Only the author of the article may edit it"
                 self.render("error.html",error=error)
@@ -381,7 +383,7 @@ class LikeHandler(Handler):
                 #self.write(username + " " + data.author + " " + check_secure_val(username))
                 error = ("You may only like or unlike posts that you did not"
                          "create")
-                self.render("error.html",error=error)
+                self.render("error.html",error=error,username=check_secure_val(username))
             elif check_secure_val(username) not in data.liked_by_list:
                 data.like_count = data.like_count + 1
                 data.liked_by_list.append(check_secure_val(username))
@@ -445,7 +447,7 @@ class CommentHandler(Handler):
             articles = db.GqlQuery("SELECT * FROM Entry "
                             "WHERE parent_post = " + post_id +
                             "ORDER BY created DESC LIMIT 10")
-            self.render("comment.html",title=title, article=article, error=error, articles = articles, author=author, mainarticle= mainarticle)
+            self.render("comment.html",title=title, article=article, error=error, articles = articles, author=author, mainarticle= mainarticle, username = check_secure_val(username))
         else:
             self.render("/")
 
@@ -467,7 +469,7 @@ class CommentHandler(Handler):
             redirect("/login")
 
 class PostCommentHandler(Handler):
-    def get(self, post_id, title="", article="", error="",author="" ):
+    def get(self, post_id, title="", article="", error="",author="",username="" ):
         username = self.request.cookies.get('name')
         if username and username != "":
             key = db.Key.from_path('Entry', int(post_id), parent=blog_key())
@@ -475,9 +477,29 @@ class PostCommentHandler(Handler):
             articles = db.GqlQuery("SELECT * FROM Entry "
                             "WHERE parent_post = " + post_id +
                             "ORDER BY created DESC LIMIT 10")
-            self.render("displaypost.html",title=title, article=article, error=error, articles = articles, author=author, rootID=post_id)
+            self.render("displaypost.html",title=title, article=article, error=error, articles = articles, author=author, rootID=post_id, username=check_secure_val(username))
         else:
             self.render("/")
+
+class DeletePostHandler(Handler):
+    def get(self,post_id):
+        username = self.request.cookies.get('name')
+        if username and username != "":
+            key = db.Key.from_path('Entry', int(post_id),parent=blog_key())
+            data = db.get(key)
+            if check_secure_val(username) == data.author:
+                articles = db.GqlQuery("SELECT * FROM Entry "
+                            "WHERE parent_post = " + post_id)
+                for whatever in articles:
+                    whatever.delete()
+                data.delete()
+                time.sleep(1)
+                self.redirect("/")
+            else:
+                error="You do not have permission to delete this post."
+                self.render("error.html",error=error)
+        else:
+            self.redirect("/")
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
@@ -491,5 +513,6 @@ app = webapp2.WSGIApplication([
     (r'/like/([0-9]+)', LikeHandler),
     (r'/unlike/([0-9]+)', UnLikeHandler),
     (r'/comment/[0-9]+', CommentHandler), # Parenthesis removed to avoid issue with Posting
-    (r'/postcomment/([0-9]+)', PostCommentHandler)
+    (r'/postcomment/([0-9]+)', PostCommentHandler),
+    (r'/deletepost/([0-9]+)', DeletePostHandler)
 ], debug=True)

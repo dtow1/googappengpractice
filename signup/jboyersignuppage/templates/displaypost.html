@@ -5,6 +5,14 @@
 {% endblock %}
 
 {% block headingmessage %}
+<h3 id="home"><a href="/">Main Page</a></h3>
+    {% if username and username != "": %}
+        Logged in as: {{username}}
+        <a href="/logout">Sign out</a>
+    {% else %}
+        Not logged in.
+        <a href="/login">Sign in</a>
+    {% endif %}
 <h1 id="title">Commenting on Post: {{title}}</h1>
 {% endblock %}
 
@@ -16,6 +24,13 @@
         <div class="article-author">Author: {{article.author}}</div>
         <hr>
         <pre class="article-body">{{article.article}}</pre>
+        <div class="comment"><a href="/comment/{{article.key().id()}}">Comment</a></div>
+        <div>
+            <a href="/editpost/{{article.key().id()}}">Edit</a>
+        </div>
+        <div>
+            <a href="/deletepost/{{article.key().id()}}">Delete</a>
+        </div>
     </div>
 
     <hr>
@@ -29,6 +44,10 @@
             <div class="article-author">Author: {{article.author}}</div>
             <hr>
             <pre class="article-body">{{article.article}}</pre>
+            <a href="/editpost/{{article.key().id()}}">Edit</a>
+            <div>
+                <a href="/deletepost/{{article.key().id()}}">Delete</a>
+            </div>
         </div>
         {% endif %}
     {% endfor %}

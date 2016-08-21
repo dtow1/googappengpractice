@@ -6,6 +6,13 @@
 
 {% block headingmessage %}
 <h1 id="title">Editing Post: {{title}}</h1>
+    {% if username and username != "": %}
+        Logged in as: {{username}}
+        <a href="/logout">Sign out</a>
+    {% else %}
+        Not logged in.
+        <a href="/login">Sign in</a>
+    {% endif %}
 {% endblock %}
 
 {% block content %}

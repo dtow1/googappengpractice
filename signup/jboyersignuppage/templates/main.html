@@ -6,6 +6,13 @@
 
 {% block headingmessage %}
 <h1 id="title">Jason Boyer's Blog App</h1>
+    {% if username and username != "": %}
+        Logged in as: {{username}}
+        <a href="/logout">Sign out</a>
+    {% else %}
+        Not logged in.
+        <a href="/login">Sign in</a>
+    {% endif %}
 <h2>Recent Posts</h2>
 {% endblock %}
 
@@ -14,7 +21,7 @@
     {% for article in articles %}
         {% if article.parent_post == 0: %}
             <div class = "article-style">
-                <div class="article-title">{{article.title}}</div>
+                <div class="article-title"><a href="/postcomment/{{article.key().id()}}">{{article.title}}</a></div>
                 <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>
                 <div class="article-author">Author: {{article.author}}</div>
                 <div class="likes">Likes: {{article.like_count}} <a href="/like/{{article.key().id()}}">Like</a> / <a href="/unlike/{{article.key().id()}}">Unlike</a></div>
