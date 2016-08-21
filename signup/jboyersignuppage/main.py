@@ -394,21 +394,6 @@ class LikeHandler(Handler):
                 self.redirect("/")
         else:
             self.redirect('/login')
-        # if username and username != "":
-        #     key = db.Key.from_path('Entry', int(post_id),parent=blog_key())
-        #     data = db.get(key)
-        #     if SameUser().compare(check_secure_val(username),data.author):
-        #         error = ("You may only like or unlike posts that you did not"
-        #                  "create")
-        #         self.render("error.html",error=error)
-        #     elif check_secure_val(username) not in data.liked_by_list:
-        #         data.like_count = data.like_count + 1
-        #         data.liked_by_list.append(check_secure_val(username))
-        #         data.put()
-        #         time.sleep(1)
-        #     self.redirect("/")
-        # else:
-        #     self.redirect('/login')
 
 class UnLikeHandler(Handler):
     def get(self,post_id):
@@ -481,25 +466,41 @@ class PostCommentHandler(Handler):
         else:
             self.render("/")
 
-class DeletePostHandler(Handler):
-    def get(self,post_id):
-        username = self.request.cookies.get('name')
+class getKey():
+    def with_post_id(self, post_id,username):
         if username and username != "":
             key = db.Key.from_path('Entry', int(post_id),parent=blog_key())
             data = db.get(key)
-            if check_secure_val(username) == data.author:
-                articles = db.GqlQuery("SELECT * FROM Entry "
-                            "WHERE parent_post = " + post_id)
-                for whatever in articles:
-                    whatever.delete()
-                data.delete()
-                time.sleep(1)
-                self.redirect("/")
-            else:
-                error="You do not have permission to delete this post."
-                self.render("error.html",error=error,username=check_secure_val(username))
         else:
             self.redirect("/")
+        results = {"username": check_secure_val(username),
+                    "uid_w_key": username,
+                    "data": data,
+                    "post_id": post_id,
+                    }
+        if results["username"]== data.author:
+            results["check_same_owner"]= True
+        else:
+            results["check_same_owner"]= False
+        return results
+
+class DeletePostHandler(Handler):
+    def get(self,post_id):
+        username = self.request.cookies.get('name')
+        keyinfo = getKey().with_post_id(post_id=post_id,username=username)
+        #if check_secure_val(keyinfo["username"]) == keyinfo["data"].author:
+        if keyinfo["check_same_owner"]:
+            articles = db.GqlQuery("SELECT * FROM Entry "
+                        "WHERE parent_post = " + post_id)
+            for article in articles:
+                article.delete()
+            keyinfo["data"].delete()
+            time.sleep(1)
+            self.redirect("/")
+        else:
+            error="You do not have permission to delete this post."
+            self.render("error.html",error=error,username=keyinfo["username"])
+
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
