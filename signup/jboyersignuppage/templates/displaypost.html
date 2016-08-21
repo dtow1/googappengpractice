@@ -22,6 +22,7 @@
         <div class="article-title">Main article: {{article.title}}</div>
         <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>
         <div class="article-author">Author: {{article.author}}</div>
+        <div class="likes">Likes: {{article.like_count}} <a href="/like/{{article.key().id()}}">Like</a> / <a href="/unlike/{{article.key().id()}}">Unlike</a></div>
         <hr>
         <pre class="article-body">{{article.article}}</pre>
         <div class="comment"><a href="/comment/{{article.key().id()}}">Comment</a></div>
@@ -42,6 +43,7 @@
             <div class="article-title">{{article.title}}</div>
             <div class="article-date">{{article.created.date().strftime('%A, %B %d, %Y')}}</div>
             <div class="article-author">Author: {{article.author}}</div>
+            <div class="likes">Likes: {{article.like_count}} <a href="/like/{{article.key().id()}}">Like</a> / <a href="/unlike/{{article.key().id()}}">Unlike</a></div>
             <hr>
             <pre class="article-body">{{article.article}}</pre>
             <a href="/editpost/{{article.key().id()}}">Edit</a>
