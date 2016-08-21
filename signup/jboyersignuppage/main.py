@@ -419,7 +419,7 @@ class UnLikeHandler(Handler):
             if SameUser().compare(check_secure_val(username),data.author):
                 error = ("You may only like or unlike posts that you did not"
                          "create")
-                self.render("error.html",error=error)
+                self.render("error.html",error=error,username=check_secure_val(username))
             elif check_secure_val(username) in data.liked_by_list:
                 if data.like_count>0: # This should not matter but just in
                                       # case a situation occurs where a user
@@ -464,7 +464,7 @@ class CommentHandler(Handler):
                 self.redirect("/postcomment/" + str(parentid))
             else:
                 error = "You need to include both a title and an article"
-                self.render_front(title,article,error)
+                self.render("error.html",error=error,username=check_secure_val(username))
         else:
             redirect("/login")
 
@@ -497,7 +497,7 @@ class DeletePostHandler(Handler):
                 self.redirect("/")
             else:
                 error="You do not have permission to delete this post."
-                self.render("error.html",error=error)
+                self.render("error.html",error=error,username=check_secure_val(username))
         else:
             self.redirect("/")
 
