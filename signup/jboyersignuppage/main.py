@@ -22,6 +22,21 @@ template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape=True)
 
 
+
+
+
+
+
+
+
+
+###############################################################################
+
+#                   Utility/Support classes and methods
+
+###############################################################################
+
+
 # Create a hash value that includes the original value along with its
 # hash. Used to verify that cookies have not been tampered with.
 def make_secure_val(s):
@@ -45,7 +60,6 @@ class Users(db.Model):
     password = db.StringProperty(required = True)
     email = db.StringProperty()
     created = db.DateTimeProperty(auto_now_add = True)
-
 
 
 # Database setup for the article data.
@@ -118,6 +132,46 @@ class ValidateForm():
         return email == "" or EMAIL_RE.match(email)
 
 
+# Blog key for db consistency
+def blog_key(name = 'default'):
+    return db.Key.from_path('blogs', name)
+
+
+# Utility class to validate user information and return a dictionary with
+# information about the user.
+class getKey():
+    def with_post_id(self, post_id,username="",limit="",query=False,sameuser=True):
+        if username and username != "":
+            key = db.Key.from_path('Entry', int(post_id),parent=blog_key())
+            data = db.get(key)
+        else:
+            self.redirect("/")
+        results = {"username": check_secure_val(username),
+                    "uid_w_key": username,
+                    "data": data,
+                    "post_id": post_id,
+                    }
+        if results["username"]== data.author:
+            results["check_same_owner"]= True
+        else:
+            results["check_same_owner"]= False
+        return results
+
+
+
+
+
+
+
+
+
+
+
+###############################################################################
+
+#                           USER ACCOUNT CLASSES
+
+###############################################################################
 
 # Class to verify user and email have not been registered. If they are new,
 # create a new user in the database.
@@ -253,6 +307,22 @@ class LogoutHandler(Handler):
 
 
 
+
+
+
+
+
+
+
+
+###############################################################################
+
+#                     General page rendering classes
+
+###############################################################################
+
+
+
 # Class for rendering the welcome page, checks for a valid cookie and if one
 # does not exist, redirects to the signup page.
 class WelcomeHandler(Handler):
@@ -279,6 +349,22 @@ class MainHandler(Handler):
                             "WHERE parent_post = 0 "
                             "ORDER BY created DESC LIMIT 10")
         self.render("main.html",title=title, article=article, error=error, articles = articles,author=author, username=check_secure_val(username))
+
+
+
+
+
+
+
+
+
+
+###############################################################################
+
+#           Post Manipulation Classes (Post, Edit, Like, Delete, etc)
+
+###############################################################################
+
 
 
 # Class to create and render a new post while displaying the 10 most recent
@@ -314,8 +400,7 @@ class NewPostHandler(Handler):
         else:
             redirect("/login")
 
-def blog_key(name = 'default'):
-    return db.Key.from_path('blogs', name)
+
 
 
 # Class to redirect user to their new post once they create it.
@@ -473,26 +558,6 @@ class PostCommentHandler(Handler):
                         "ORDER BY created DESC LIMIT 10")
         self.render("displaypost.html",title=title, article=article, error=error, articles = articles, author=author, rootID=post_id, username=check_secure_val(username))
 
-
-# Utility class to validate user information and return a dictionary with
-# information about the user.
-class getKey():
-    def with_post_id(self, post_id,username="",limit="",query=False,sameuser=True):
-        if username and username != "":
-            key = db.Key.from_path('Entry', int(post_id),parent=blog_key())
-            data = db.get(key)
-        else:
-            self.redirect("/")
-        results = {"username": check_secure_val(username),
-                    "uid_w_key": username,
-                    "data": data,
-                    "post_id": post_id,
-                    }
-        if results["username"]== data.author:
-            results["check_same_owner"]= True
-        else:
-            results["check_same_owner"]= False
-        return results
 
 
 # Class for deleting posts
