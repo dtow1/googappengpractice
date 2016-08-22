@@ -476,7 +476,7 @@ class LikeHandler(Handler):
             time.sleep(1)
             self.redirect(self.request.referer)
         else:
-            self.redirect("/")
+            self.redirect(self.request.referer)
 
 
 # Class for unliking a post
@@ -502,11 +502,9 @@ class UnLikeHandler(Handler):
                 keyinfo["data"].liked_by_list.remove(keyinfo["username"])
                 keyinfo["data"].put()
                 time.sleep(1)
-                self.redirect(self.request.referer)
-            else:
-                self.redirect("/")
+            self.redirect(self.request.referer)
         else:
-            self.redirect('/login')
+            self.redirect(self.request.referer)
 
 
 
