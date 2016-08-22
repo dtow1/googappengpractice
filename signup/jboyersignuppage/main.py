@@ -525,7 +525,7 @@ class CommentHandler(Handler):
         post_id = url.rsplit('/', 1)[-1]
         username = self.request.cookies.get('name')
         # Set cookie to enable canceled edits to return here
-        self.response.headers.add_header('Set-Cookie', 'referrer_url=%s; Path=/' % self.request.url)
+        #self.response.headers.add_header('Set-Cookie', 'referrer_url=%s; Path=/' % self.request.url)
         # Get username from cookie, validation and redirection(if needed), is
         # handled in the getKey() class.
         keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
