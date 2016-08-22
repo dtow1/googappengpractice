@@ -299,10 +299,11 @@ class LoginHandler(Handler):
 # Class for validating user id
 class LogoutHandler(Handler):
     def get(self):
-        # If user is already logged in, redirect them to welcome page
+        # If user is already logged in, log them out then redirect them to login page. If not logged in, automatically redirect them to the login page.
         username = self.request.cookies.get('name')
         if username and username != "":
             self.response.headers.add_header('Set-Cookie', 'name=; Path=/;')
+            self.response.headers.add_header('Set-Cookie', 'referrer_url=; Path=/')
         self.redirect("/login")
 
 
@@ -343,6 +344,8 @@ class MainHandler(Handler):
         # a value needs to be set so that main.html can display a login link if
         # no uid, or can display the username if logged in.
         username = self.request.cookies.get('name')
+        # Set cookie to enable canceled edits to return here
+        self.response.headers.add_header('Set-Cookie', 'referrer_url=%s; Path=/' % self.request.url)
         if not username:
             username = ""
         articles = db.GqlQuery("SELECT * FROM Entry "
@@ -424,6 +427,7 @@ class EditHandler(Handler):
         url = self.request.url
         post_id = url.rsplit('/', 1)[-1]
         username = self.request.cookies.get('name')
+        self.response.headers.add_header('Set-Cookie', 'post_id=%s; Path=/' % str(post_id))
         # Get username from cookie, validation and redirection(if needed), is
         # handled in the getKey() class.
         keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
@@ -434,7 +438,7 @@ class EditHandler(Handler):
             article= keyinfo["data"].article
             date= keyinfo["data"].created.date().strftime('%A, %B %d, %Y')
             author = keyinfo["data"].author
-            self.response.headers.add_header('Set-Cookie', 'post_id=%s; Path=/' % str(post_id))
+
             self.render("editpost.html", title=title,article=article, date=date, author=author, id=post_id, username=keyinfo["username"])
         else:
             error = "Only the author of the article may edit it"
@@ -451,7 +455,13 @@ class EditHandler(Handler):
         keyinfo["data"].put()
         #Sleep for one second before redirecting and updating the post
         time.sleep(1)
-        self.redirect("/")
+        self.redirect(self.request.referer)
+
+
+class EditCancelHandler(Handler):
+    def get(self):
+        url = self.request.cookies.get('referrer_url')
+        self.redirect(str(url))
 
 
 
@@ -514,6 +524,8 @@ class CommentHandler(Handler):
         url = self.request.url
         post_id = url.rsplit('/', 1)[-1]
         username = self.request.cookies.get('name')
+        # Set cookie to enable canceled edits to return here
+        self.response.headers.add_header('Set-Cookie', 'referrer_url=%s; Path=/' % self.request.url)
         # Get username from cookie, validation and redirection(if needed), is
         # handled in the getKey() class.
         keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
@@ -547,6 +559,8 @@ class CommentHandler(Handler):
 class PostCommentHandler(Handler):
     def get(self, post_id, title="", article="", error="",author="",username="" ):
         username = self.request.cookies.get('name')
+        # Set cookie to enable canceled edits to return here
+        self.response.headers.add_header('Set-Cookie', 'referrer_url=%s; Path=/' % self.request.url)
         # Get username from cookie, validation and redirection(if needed), is
         # handled in the getKey() class.
         keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
@@ -596,5 +610,6 @@ app = webapp2.WSGIApplication([
     (r'/unlike/([0-9]+)', UnLikeHandler),
     (r'/comment/[0-9]+', CommentHandler), # Parenthesis removed to avoid issue with Posting
     (r'/postcomment/([0-9]+)', PostCommentHandler),
-    (r'/deletepost/([0-9]+)', DeletePostHandler)
+    (r'/deletepost/([0-9]+)', DeletePostHandler),
+    ('/canceledit',EditCancelHandler)
 ], debug=True)
