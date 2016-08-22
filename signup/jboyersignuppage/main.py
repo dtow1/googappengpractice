@@ -1,19 +1,13 @@
 #!/usr/bin/env python
 #
-# Copyright 2007 Google Inc.
+# Copyright 2016 Jason Boyer
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# This is the main python file for my blog application created using Google App
+# Engine.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# Completed 8/22/2016
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+
 import webapp2
 import os
 import jinja2
@@ -65,7 +59,8 @@ class Entry(db.Model):
     parent_post = db.IntegerProperty(required = True)
 
 # Base handler class to simplify write and render operations for other methods.
-# This class is from the Udacity Full Stack Developer Nanodegree.
+# This class is from the Udacity Full Stack Developer Nanodegree, not created
+# by me.
 class Handler(webapp2.RequestHandler):
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
@@ -253,8 +248,6 @@ class LogoutHandler(Handler):
         # If user is already logged in, redirect them to welcome page
         username = self.request.cookies.get('name')
         if username and username != "":
-            # expiration = "Thu, 01-Jan-1970 00:00:10 GMT"
-            # self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/; Expires=%s' % (str(make_secure_val(username)), expiration))
             self.response.headers.add_header('Set-Cookie', 'name=; Path=/;')
         self.redirect("/login")
 
@@ -264,6 +257,8 @@ class LogoutHandler(Handler):
 # does not exist, redirects to the signup page.
 class WelcomeHandler(Handler):
     def get(self):
+        # Get username from cookie and check that 1) the cookie exists and
+        # 2) it is not a blank value, send to login page otherwise.
         username = self.request.cookies.get('name')
         if username and username!="":
             self.render("welcome.html", username = check_secure_val(username))
@@ -271,26 +266,32 @@ class WelcomeHandler(Handler):
             self.redirect('/signup')
 
 
-
+# Class to render the frontpage of the site
 class MainHandler(Handler):
-    def render_front(self, title="", article="", error="",author=""):
+    def get(self, title="", article="", error="",author=""):
+        # User can view the webpage if not logged in so do not require uid but
+        # a value needs to be set so that main.html can display a login link if
+        # no uid, or can display the username if logged in.
+        username = self.request.cookies.get('name')
+        if not username:
+            username = ""
+        articles = db.GqlQuery("SELECT * FROM Entry "
+                            "WHERE parent_post = 0 "
+                            "ORDER BY created DESC LIMIT 10")
+        self.render("main.html",title=title, article=article, error=error, articles = articles,author=author, username=check_secure_val(username))
+
+
+# Class to create and render a new post while displaying the 10 most recent
+# posts.
+class NewPostHandler(Handler):
+    def get(self, title="", article="", error="",author="",articles="",username=""):
+        # Get username from cookie and check that 1) the cookie exists and
+        # 2) it is not a blank value, send to login page otherwise.
         username = self.request.cookies.get('name')
         if username and username != "":
             articles = db.GqlQuery("SELECT * FROM Entry "
                             "WHERE parent_post = 0 "
                             "ORDER BY created DESC LIMIT 10")
-        self.render("main.html",title=title, article=article, error=error, articles = articles,author=author, username=check_secure_val(username))
-
-    def get(self):
-        self.render_front()
-
-
-
-class NewPostHandler(Handler):
-    def get(self, title="", article="", error="",author="",articles="",username=""):
-        username = self.request.cookies.get('name')
-        if username and username != "":
-            articles = db.GqlQuery("SELECT * FROM Entry ORDER BY created DESC")
             self.render("newpost.html",title=title, article=article, error=error, articles = articles, author=author, username=check_secure_val(username))
         else:
             self.redirect('/login')
@@ -300,7 +301,9 @@ class NewPostHandler(Handler):
         article = self.request.get("content")
         username = check_secure_val(self.request.cookies.get('name'))
 
-        if username != "":
+        # Get username from cookie and check that 1) the cookie exists and
+        # 2) it is not a blank value, send to login page otherwise.
+        if username and username != "":
             if title and article:
                 a = Entry(title=title, article=article, parent=blog_key(), author=username, parent_post = 0)
                 a.put()
@@ -315,9 +318,11 @@ def blog_key(name = 'default'):
     return db.Key.from_path('blogs', name)
 
 
-
+# Class to redirect user to their new post once they create it.
 class PostHandler(Handler):
     def get(self, post_id):
+        # Get username from cookie, validation and redirection(if needed), is
+        # handled in the getKey() class.
         username = self.request.cookies.get('name')
         keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
         title= keyinfo["data"].title
@@ -328,14 +333,18 @@ class PostHandler(Handler):
 
 
 
-
+# Class to handle editing of posts
 class EditHandler(Handler):
     def get(self):
         url = self.request.url
         post_id = url.rsplit('/', 1)[-1]
         username = self.request.cookies.get('name')
+        # Get username from cookie, validation and redirection(if needed), is
+        # handled in the getKey() class.
         keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
-        if check_secure_val(username) == data.author:
+        # Check if current user is the author of the post and if so allow them
+        # to edit the post.
+        if keyinfo["username"] == keyinfo["data"].author:
             title= keyinfo["data"].title
             article= keyinfo["data"].article
             date= keyinfo["data"].created.date().strftime('%A, %B %d, %Y')
@@ -350,6 +359,8 @@ class EditHandler(Handler):
         article = self.request.get("content")
         post_id = self.request.cookies.get('post_id')
         username = self.request.cookies.get('name')
+        # Get username from cookie, validation and redirection(if needed), is
+        # handled in the getKey() class.
         keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
         keyinfo["data"].article = article
         keyinfo["data"].put()
@@ -357,22 +368,22 @@ class EditHandler(Handler):
         time.sleep(1)
         self.redirect("/")
 
-# Class for comparing post owner to currently logged in user
-class SameUser():
-    def compare(self,ownername, username):
-        if ownername == username:
-            return True
-        else:
-            return False
 
+
+# Class for liking a post
 class LikeHandler(Handler):
     def get(self,post_id):
         username = self.request.cookies.get('name')
+        # Get username from cookie, validation and redirection(if needed), is
+        # handled in the getKey() class.
         keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
-        if SameUser().compare(keyinfo["username"],keyinfo["data"].author):
+        # Cannot like a post if it is their own post
+        if keyinfo["check_same_owner"]:
             error = ("You may only like or unlike posts that you did not"
                      "create")
             self.render("error.html",error=error,username=check_secure_val(username))
+        # If they are not the owner, and they have not already liked the post
+        # then allow to like. Sleep for 1 second to allow update.
         elif keyinfo["username"] not in keyinfo["data"].liked_by_list:
             keyinfo["data"].like_count = keyinfo["data"].like_count + 1
             keyinfo["data"].liked_by_list.append(keyinfo["username"])
@@ -382,20 +393,26 @@ class LikeHandler(Handler):
         else:
             self.redirect("/")
 
+
+# Class for unliking a post
 class UnLikeHandler(Handler):
     def get(self,post_id):
         username = self.request.cookies.get('name')
+        # Get username from cookie, validation and redirection(if needed), is
+        # handled in the getKey() class.
         keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
-        if SameUser().compare(keyinfo["username"],keyinfo["data"].author):
+        # Cannot unlike a post if it is their own post
+        if keyinfo["check_same_owner"]:
             error = ("You may only like or unlike posts that you did not"
                      "create")
             self.render("error.html",error=error,username=keyinfo["username"])
+        # If they are not the owner, and they have already liked the post
+        # then allow to like. Sleep for 1 second to allow update.
         elif keyinfo["username"] in keyinfo["data"].liked_by_list:
-            if keyinfo["data"].like_count>0: # This should not matter but just in
-                                  # case a situation occurs where a user
-                                  # name is in the liked list and the
-                                  # count had not been properly
-                                  # decremented.
+            if keyinfo["data"].like_count>0: # This should not matter but just
+                                  # in case a situation occurs where a user
+                                  # name is in the liked list and the count
+                                  # had not been properly decremented.
                 keyinfo["data"].like_count = keyinfo["data"].like_count - 1
                 keyinfo["data"].liked_by_list.remove(keyinfo["username"])
                 keyinfo["data"].put()
@@ -406,11 +423,16 @@ class UnLikeHandler(Handler):
         else:
             self.redirect('/login')
 
+
+
+# Class for adding comments to posts
 class CommentHandler(Handler):
     def get(self, title="", article="", error="",author="" ):
         url = self.request.url
         post_id = url.rsplit('/', 1)[-1]
         username = self.request.cookies.get('name')
+        # Get username from cookie, validation and redirection(if needed), is
+        # handled in the getKey() class.
         keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
         mainarticle = keyinfo["data"]
         articles = db.GqlQuery("SELECT * FROM Entry "
@@ -424,6 +446,8 @@ class CommentHandler(Handler):
         parentid = self.request.get("parentid")
         username = check_secure_val(self.request.cookies.get('name'))
 
+        # Check user login status and createa new article with the information
+        # from the form.
         if username and username != "":
             if title and article:
                 a = Entry(title=title, article=article, parent=blog_key(), author=username, parent_post = int(parentid))
@@ -436,10 +460,12 @@ class CommentHandler(Handler):
             redirect("/login")
 
 
-
+# Class for displaying post comments.
 class PostCommentHandler(Handler):
     def get(self, post_id, title="", article="", error="",author="",username="" ):
         username = self.request.cookies.get('name')
+        # Get username from cookie, validation and redirection(if needed), is
+        # handled in the getKey() class.
         keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
         article = keyinfo["data"]
         articles = db.GqlQuery("SELECT * FROM Entry "
@@ -448,7 +474,8 @@ class PostCommentHandler(Handler):
         self.render("displaypost.html",title=title, article=article, error=error, articles = articles, author=author, rootID=post_id, username=check_secure_val(username))
 
 
-
+# Utility class to validate user information and return a dictionary with
+# information about the user.
 class getKey():
     def with_post_id(self, post_id,username="",limit="",query=False,sameuser=True):
         if username and username != "":
@@ -468,16 +495,23 @@ class getKey():
         return results
 
 
-
+# Class for deleting posts
 class DeletePostHandler(Handler):
     def get(self,post_id):
         username = self.request.cookies.get('name')
+        # Get username from cookie, validation and redirection(if needed), is
+        # handled in the getKey() class.
         keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="", sameuser=True)
+        # Make sure owner of the post is deleting it.
         if keyinfo["check_same_owner"]:
+            # Even though the owner of the post may not be the owner of
+            # comments to the post, the comments will be left "floating" in the
+            # database if the post is deleted, so delete all comments too.
             articles = db.GqlQuery("SELECT * FROM Entry "
                         "WHERE parent_post = " + post_id)
             for article in articles:
                 article.delete()
+            # Delete the main post
             keyinfo["data"].delete()
             time.sleep(1)
             self.redirect("/")
