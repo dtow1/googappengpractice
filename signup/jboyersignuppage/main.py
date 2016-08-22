@@ -348,10 +348,12 @@ class MainHandler(Handler):
         self.response.headers.add_header('Set-Cookie', 'referrer_url=%s; Path=/' % self.request.url)
         if not username:
             username = ""
+        elif check_secure_val(username):
+            username= check_secure_val(username)
         articles = db.GqlQuery("SELECT * FROM Entry "
                             "WHERE parent_post = 0 "
                             "ORDER BY created DESC LIMIT 10")
-        self.render("main.html",title=title, article=article, error=error, articles = articles,author=author, username=check_secure_val(username))
+        self.render("main.html",title=title, article=article, error=error, articles = articles,author=author, username=username)
 
 
 
@@ -373,7 +375,8 @@ class MainHandler(Handler):
 # Class to create and render a new post while displaying the 10 most recent
 # posts.
 class NewPostHandler(Handler):
-    def get(self, title="", article="", error="",author="",articles="",username=""):
+    def get(self, title="", article="", error="",author="",articles="",
+        username=""):
         # Get username from cookie and check that 1) the cookie exists and
         # 2) it is not a blank value, send to login page otherwise.
         username = self.request.cookies.get('name')
@@ -381,7 +384,8 @@ class NewPostHandler(Handler):
             articles = db.GqlQuery("SELECT * FROM Entry "
                             "WHERE parent_post = 0 "
                             "ORDER BY created DESC LIMIT 10")
-            self.render("newpost.html",title=title, article=article, error=error, articles = articles, author=author, username=check_secure_val(username))
+            self.render("newpost.html",title=title, article=article,
+                error=error, articles = articles, author=author, username=check_secure_val(username))
         else:
             self.redirect('/login')
 
@@ -394,7 +398,8 @@ class NewPostHandler(Handler):
         # 2) it is not a blank value, send to login page otherwise.
         if username and username != "":
             if title and article:
-                a = Entry(title=title, article=article, parent=blog_key(), author=username, parent_post = 0)
+                a = Entry(title=title, article=article, parent=blog_key(),
+                    author=username, parent_post = 0)
                 a.put()
                 self.redirect("/post/" + str(a.key().id()))
             else:
@@ -412,12 +417,14 @@ class PostHandler(Handler):
         # Get username from cookie, validation and redirection(if needed), is
         # handled in the getKey() class.
         username = self.request.cookies.get('name')
-        keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
+        keyinfo = getKey().with_post_id(post_id=post_id,username=username,
+            limit="")
         title= keyinfo["data"].title
         article= keyinfo["data"].article
         date= keyinfo["data"].created.date().strftime('%A, %B %d, %Y')
         author = keyinfo["data"].author
-        self.render("postpermalink.html", title=title,article=article, date=date, author=author,username=keyinfo["username"])
+        self.render("postpermalink.html", title=title,article=article,
+            date=date, author=author,username=keyinfo["username"])
 
 
 
@@ -427,10 +434,12 @@ class EditHandler(Handler):
         url = self.request.url
         post_id = url.rsplit('/', 1)[-1]
         username = self.request.cookies.get('name')
-        self.response.headers.add_header('Set-Cookie', 'post_id=%s; Path=/' % str(post_id))
+        self.response.headers.add_header('Set-Cookie',
+            'post_id=%s; Path=/' % str(post_id))
         # Get username from cookie, validation and redirection(if needed), is
         # handled in the getKey() class.
-        keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
+        keyinfo = getKey().with_post_id(post_id=post_id,username=username,
+            limit="")
         # Check if current user is the author of the post and if so allow them
         # to edit the post.
         if keyinfo["username"] == keyinfo["data"].author:
@@ -439,7 +448,9 @@ class EditHandler(Handler):
             date= keyinfo["data"].created.date().strftime('%A, %B %d, %Y')
             author = keyinfo["data"].author
 
-            self.render("editpost.html", title=title,article=article, date=date, author=author, id=post_id, username=keyinfo["username"])
+            self.render("editpost.html", title=title,article=article,
+                date=date, author=author, id=post_id,
+                username=keyinfo["username"])
         else:
             error = "Only the author of the article may edit it"
             self.render("error.html",error=error)
@@ -450,7 +461,8 @@ class EditHandler(Handler):
         username = self.request.cookies.get('name')
         # Get username from cookie, validation and redirection(if needed), is
         # handled in the getKey() class.
-        keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
+        keyinfo = getKey().with_post_id(post_id=post_id,username=username,
+            limit="")
         keyinfo["data"].article = article
         keyinfo["data"].put()
         #Sleep for one second before redirecting and updating the post
@@ -471,12 +483,14 @@ class LikeHandler(Handler):
         username = self.request.cookies.get('name')
         # Get username from cookie, validation and redirection(if needed), is
         # handled in the getKey() class.
-        keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
+        keyinfo = getKey().with_post_id(post_id=post_id,username=username,
+            limit="")
         # Cannot like a post if it is their own post
         if keyinfo["check_same_owner"]:
             error = ("You may only like or unlike posts that you did not"
                      "create")
-            self.render("error.html",error=error,username=check_secure_val(username))
+            self.render("error.html",error=error,
+                username=check_secure_val(username))
         # If they are not the owner, and they have not already liked the post
         # then allow to like. Sleep for 1 second to allow update.
         elif keyinfo["username"] not in keyinfo["data"].liked_by_list:
@@ -495,7 +509,8 @@ class UnLikeHandler(Handler):
         username = self.request.cookies.get('name')
         # Get username from cookie, validation and redirection(if needed), is
         # handled in the getKey() class.
-        keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
+        keyinfo = getKey().with_post_id(post_id=post_id,username=username,
+            limit="")
         # Cannot unlike a post if it is their own post
         if keyinfo["check_same_owner"]:
             error = ("You may only like or unlike posts that you did not"
@@ -528,12 +543,15 @@ class CommentHandler(Handler):
         #self.response.headers.add_header('Set-Cookie', 'referrer_url=%s; Path=/' % self.request.url)
         # Get username from cookie, validation and redirection(if needed), is
         # handled in the getKey() class.
-        keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
+        keyinfo = getKey().with_post_id(post_id=post_id,username=username,
+            limit="")
         mainarticle = keyinfo["data"]
         articles = db.GqlQuery("SELECT * FROM Entry "
                         "WHERE parent_post = " + post_id +
                         "ORDER BY created DESC LIMIT 10")
-        self.render("comment.html",title=title, article=article, error=error, articles = articles, author=author, mainarticle= mainarticle, username = keyinfo["username"])
+        self.render("comment.html",title=title, article=article, error=error,
+                articles = articles, author=author, mainarticle= mainarticle,
+                username = keyinfo["username"])
 
     def post(self):
         title = self.request.get("subject")
@@ -545,30 +563,37 @@ class CommentHandler(Handler):
         # from the form.
         if username and username != "":
             if title and article:
-                a = Entry(title=title, article=article, parent=blog_key(), author=username, parent_post = int(parentid))
+                a = Entry(title=title, article=article, parent=blog_key(),
+                    author=username, parent_post = int(parentid))
                 a.put()
                 self.redirect("/postcomment/" + str(parentid))
             else:
                 error = "You need to include both a title and an article"
-                self.render("error.html",error=error,username=check_secure_val(username))
+                self.render("error.html",error=error,
+                            username=check_secure_val(username))
         else:
             redirect("/login")
 
 
 # Class for displaying post comments.
 class PostCommentHandler(Handler):
-    def get(self, post_id, title="", article="", error="",author="",username="" ):
+    def get(self, post_id, title="", article="", error="",author="",
+            username="" ):
         username = self.request.cookies.get('name')
         # Set cookie to enable canceled edits to return here
-        self.response.headers.add_header('Set-Cookie', 'referrer_url=%s; Path=/' % self.request.url)
+        self.response.headers.add_header('Set-Cookie', 'referrer_url=%s;'
+            'Path=/' % self.request.url)
         # Get username from cookie, validation and redirection(if needed), is
         # handled in the getKey() class.
-        keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="")
+        keyinfo = getKey().with_post_id(post_id=post_id,username=username,
+            limit="")
         article = keyinfo["data"]
         articles = db.GqlQuery("SELECT * FROM Entry "
                         "WHERE parent_post = " + post_id +
                         "ORDER BY created DESC LIMIT 10")
-        self.render("displaypost.html",title=title, article=article, error=error, articles = articles, author=author, rootID=post_id, username=check_secure_val(username))
+        self.render("displaypost.html",title=title, article=article,
+                error=error, articles = articles, author=author,
+                rootID=post_id, username=check_secure_val(username))
 
 
 
@@ -578,7 +603,8 @@ class DeletePostHandler(Handler):
         username = self.request.cookies.get('name')
         # Get username from cookie, validation and redirection(if needed), is
         # handled in the getKey() class.
-        keyinfo = getKey().with_post_id(post_id=post_id,username=username,limit="", sameuser=True)
+        keyinfo = getKey().with_post_id(post_id=post_id,username=username,
+            limit="", sameuser=True)
         # Make sure owner of the post is deleting it.
         if keyinfo["check_same_owner"]:
             # Even though the owner of the post may not be the owner of
