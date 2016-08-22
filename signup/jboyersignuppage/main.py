@@ -474,7 +474,7 @@ class LikeHandler(Handler):
             keyinfo["data"].liked_by_list.append(keyinfo["username"])
             keyinfo["data"].put()
             time.sleep(1)
-            self.redirect("/")
+            self.redirect(self.request.referer)
         else:
             self.redirect("/")
 
@@ -502,7 +502,7 @@ class UnLikeHandler(Handler):
                 keyinfo["data"].liked_by_list.remove(keyinfo["username"])
                 keyinfo["data"].put()
                 time.sleep(1)
-                self.redirect("/")
+                self.redirect(self.request.referer)
             else:
                 self.redirect("/")
         else:
